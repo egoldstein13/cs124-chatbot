@@ -150,7 +150,7 @@ class Chatbot:
         """
         movies = []
 
-        if(self.creative):
+        if(!self.creative):
           regex_with_quotes = r'\"(.*?)\"'
           movies = re.findall(regex_with_quotes, preprocessed_input)
 
