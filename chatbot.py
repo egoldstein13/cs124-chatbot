@@ -276,6 +276,12 @@ class Chatbot:
         # The starter code returns a new matrix shaped like ratings but full of zeros.
         binarized_ratings = np.zeros_like(ratings)
 
+        for movie in range(len(ratings)):
+          for user in range(len(ratings[movie])):
+            if ratings[movie][user] > threshold:
+              binarized_ratings[movie][user] = 1
+            elif 0 < ratings[movie][user] <= threshold:
+              binarized_ratings[movie][user] = -1
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
