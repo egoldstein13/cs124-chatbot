@@ -325,6 +325,11 @@ class Chatbot:
         # TODO: Compute cosine similarity between the two vectors.
         #############################################################################
         similarity = 0
+        dot = np.dot(u, v)
+        norm_u = LA.norm(u)
+        norm_v = LA.norm(v)
+        prod = norm_u * norm_v
+        similarity = dot / prod
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -371,7 +376,7 @@ class Chatbot:
             sum = 0
             for j in range(user_ratings.size):
               if user_ratings[j] != 0:
-                sim = cosine_similarity(ratings_matrix[i], ratings_matrix[j])
+                sim = similarity(ratings_matrix[i], ratings_matrix[j])
                 score = user_ratings[j]
                 sum += sim * score
             ratings_map[sum] = i
@@ -383,16 +388,7 @@ class Chatbot:
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
-        return recommendations
-
-    def cosine_similarity(self, v1, v2):
-    # Calculates and returns the cosine similarity between vectors v1 and v2
-      dot = np.dot(v1, v2)
-      norm_v1 = LA.norm(v1)
-      norm_v2 = LA.norm(v2)
-      prod = norm_v1 * norm_v2
-      cosine_sim = dot / prod
-      return cosine_sim   
+        return recommendations  
 
     #############################################################################
     # 4. Debug info                                                             #
