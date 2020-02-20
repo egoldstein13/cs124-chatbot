@@ -5,6 +5,7 @@
 import movielens
 import re
 import numpy as np
+from numpy import linalg as LA
 
 
 # noinspection PyMethodMayBeStatic
@@ -363,11 +364,35 @@ class Chatbot:
 
         # Populate this list with k movie indices to recommend to the user.
         recommendations = []
-
+        ratings_map = {}
+        ratings = []
+        for i in range(ratings_matrix.shape[0]):
+          if user_ratings[i] == 0:
+            sum = 0
+            for j in range(user_ratings.size):
+              if user_ratings[j] != 0:
+                sim = cosine_similarity(ratings_matrix[i], ratings_matrix[j])
+                score = user_ratings[j]
+                sum += sim * score
+            ratings_map[sum] = i
+            ratings.append(sum)
+        ratings = np.sort(ratings)[::-1]
+        for i in range(k):
+          recommendations.append(ratings_map[ratings[i]]) 
+        return recommendations
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
         return recommendations
+
+    def cosine_similarity(self, v1, v2):
+    # Calculates and returns the cosine similarity between vectors v1 and v2
+      dot = np.dot(v1, v2)
+      norm_v1 = LA.norm(v1)
+      norm_v2 = LA.norm(v2)
+      prod = norm_v1 * norm_v2
+      cosine_sim = dot / prod
+      return cosine_sim   
 
     #############################################################################
     # 4. Debug info                                                             #
