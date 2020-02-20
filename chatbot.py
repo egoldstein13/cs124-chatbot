@@ -376,7 +376,7 @@ class Chatbot:
             sum = 0
             for j in range(user_ratings.size):
               if user_ratings[j] != 0:
-                sim = similarity(ratings_matrix[i], ratings_matrix[j])
+                sim = self.similarity(ratings_matrix[i], ratings_matrix[j])
                 score = user_ratings[j]
                 sum += sim * score
             ratings_map[sum] = i
