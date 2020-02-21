@@ -384,7 +384,6 @@ class Chatbot:
         ratings = np.sort(ratings)[::-1]
         for i in range(k):
           recommendations.append(ratings_map[ratings[i]]) 
-        return recommendations
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
