@@ -5,6 +5,7 @@
 import movielens
 import re
 import numpy as np
+from PorterStemmer import PorterStemmer
 
 
 # noinspection PyMethodMayBeStatic
@@ -200,6 +201,9 @@ class Chatbot:
         As an optional creative extension, return -2 if the sentiment of the text
         is super negative and +2 if the sentiment of the text is super positive.
 
+        Supported lexicons so far: not, never, no, neither
+        Supported contrapositives so far: yet, still, but
+
         Example:
           sentiment = chatbot.extract_sentiment(chatbot.preprocess('I liked "The Titanic"'))
           print(sentiment) // prints 1
@@ -207,7 +211,51 @@ class Chatbot:
         :param preprocessed_input: a user-supplied line of text that has been pre-processed with preprocess()
         :returns: a numerical value for the sentiment of the text
         """
-        return 0
+        sentiments = dict()
+        f = open('data/sentiment.txt')
+        p = PorterStemmer()
+        for line in f:
+          kv = line.rstrip().split(',')
+          key = p.stem(kv[0], 0, len(kv[0])-1)
+          if kv[1] == 'pos':
+            sentiments[key] = 1
+          else:
+            sentiments[key] = -1
+        f.close()
+
+        # Remove the movie titles
+        words = re.sub('"(.*?)"', '', preprocessed_input)
+        words = words.split()
+
+        neg_lexicon = {'not', 'never', 'no', 'neither'}
+        negation = 1
+
+        sentiment = 0
+        for i in range(len(words)):
+          if sentiment != 0:
+            if 'but' in words[i] or 'yet' in words[i] or 'still' in words[i]:
+              sentiment = 0
+            continue
+          if words[i].endswith("n't") or words[i] in neg_lexicon:
+            negation = -1
+            continue
+          if words[i].endswith('i'):
+            candidate_i = words[i]
+            candidate_y = words[i][:-1] + 'y'
+            if candidate_i in sentiments:
+              sentiment = sentiments[candidate_i]
+            elif candidate_y in sentiments:
+              sentiment = sentiments[candidate_y]
+          else:
+            candidate = words[i]
+            if candidate in sentiments:
+              sentiment = sentiments[candidate]
+          sentiment *= negation
+        
+        return sentiment
+              
+
+
 
     def extract_sentiment_for_movies(self, preprocessed_input):
         """Creative Feature: Extracts the sentiments from a line of pre-processed text
