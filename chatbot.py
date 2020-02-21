@@ -254,7 +254,10 @@ class Chatbot:
         
         return sentiment
               
-
+    def give_recommendations(self, recommendations):
+      titles = [self.movie_titles[movieID] for movieID in recommendations]
+      pattern = """Given what you told me, I think you would like the following movies: "{}", "{}", and "{}". Would you like more recommendations? """
+      return pattern.format(*recommendations[:3])
 
 
     def extract_sentiment_for_movies(self, preprocessed_input):
