@@ -5,7 +5,7 @@
 import movielens
 import re
 import numpy as np
-
+import re
 
 # noinspection PyMethodMayBeStatic
 class Chatbot:
@@ -97,6 +97,7 @@ class Chatbot:
         else:
             response = "I processed {} in starter mode!!".format(line)
 
+        self.extract_titles(line)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -148,7 +149,13 @@ class Chatbot:
         :param preprocessed_input: a user-supplied line of text that has been pre-processed with preprocess()
         :returns: list of movie titles that are potentially in the text
         """
-        return []
+        movies = []
+
+        if not self.creative:
+          regex_with_quotes = r'\"(.*?)\"'
+          movies = re.findall(regex_with_quotes, preprocessed_input)
+
+        return movies
 
     def find_movies_by_title(self, title):
         """ Given a movie title, return a list of indices of matching movies.
