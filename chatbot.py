@@ -26,8 +26,8 @@ class Chatbot:
         #############################################################################
         # TODO: Binarize the movie ratings matrix.                                  #
         #############################################################################
-
         # Binarize the movie ratings before storing the binarized matrix.
+        ratings = self.binarize(ratings)
         self.ratings = ratings
         #############################################################################
         #                             END OF YOUR CODE                              #
