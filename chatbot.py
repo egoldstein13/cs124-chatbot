@@ -3,7 +3,7 @@
 # Original Python code by Ignacio Cases (@cases)
 ######################################################################
 import movielens
-
+import re
 import numpy as np
 
 
@@ -21,6 +21,7 @@ class Chatbot:
         # The values stored in each row i and column j is the rating for
         # movie i by user j
         self.titles, ratings = movielens.ratings()
+        self.movie_titles = [i[0] for i in self.titles] # extract just the titles into a single array
         self.sentiment = movielens.sentiment()
 
         #############################################################################
@@ -161,11 +162,33 @@ class Chatbot:
         Example:
           ids = chatbot.find_movies_by_title('Titanic')
           print(ids) // prints [1359, 1953]
-
+        
         :param title: a string containing a movie title
         :returns: a list of indices of matching movies
         """
-        return []
+        movie_list = []
+        title_parts = re.match("(?P<article>(the\s|an\s|a\s)?)(?P<movie>.*(?<!\(\d{4}\)))(?P<year>\(\d{4}\))?$", title, flags=re.IGNORECASE)
+        if title_parts == None:
+            return []
+        article = title_parts.group('article').strip() if title_parts.group('article') != None else ""
+        movie = title_parts.group('movie').strip() if title_parts.group('movie') else ""
+        year = title_parts.group('year').strip() if title_parts.group('year') else ""
+        patterns = []
+        #print(self.movie_titles)
+        if year == "":
+            patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " \(\d{4}\)", flags=re.IGNORECASE))
+            if article != "":
+                patterns.append(re.compile(re.escape(movie) + ",[ ]?" + article + " \(\d{4}\)", flags=re.IGNORECASE))
+        else:
+            patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " " + re.escape(year)))
+            if article != "":
+                patterns.append(re.compile(re.escape(movie) + ",[ ]?" + article + " " + re.escape(year), flags=re.IGNORECASE))
+        for r in patterns:
+            result = list(filter(r.match, self.movie_titles))
+            if len(result) > 0:
+                for movie in result:
+                    movie_list.append(self.movie_titles.index(movie))
+        return movie_list
 
     def extract_sentiment(self, preprocessed_input):
         """Extract a sentiment rating from a line of pre-processed text.
