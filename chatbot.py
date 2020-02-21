@@ -223,8 +223,21 @@ class Chatbot:
             sentiments[key] = -1
         f.close()
 
-        # Remove the movie titles
-        words = re.sub('"(.*?)"', '', preprocessed_input)
+        # Use Porter Stemmer on the input
+        words = ''
+        word = ''
+        for c in preprocessed_input:
+          if c.isalpha():
+            word += c.lower()
+          else:
+            if word:
+              words += p.stem(word, 0, len(word)-1)
+              word = ''
+            words += c.lower()
+
+        # Remove the movie titles and puncuation
+        words = re.sub('"(.*?)"', '', words)
+        words = re.sub("[^a-zA-Z\s'-]", '', words)
         words = words.split()
 
         neg_lexicon = {'not', 'never', 'no', 'neither'}
