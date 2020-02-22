@@ -24,6 +24,7 @@ class Chatbot:
         self.titles, ratings = movielens.ratings()
         self.movie_titles = [i[0] for i in self.titles] # extract just the titles into a single array
         self.sentiment = movielens.sentiment()
+        self.num_ratings = 0
 
         #############################################################################
         # TODO: Binarize the movie ratings matrix.                                  #
@@ -381,9 +382,15 @@ class Chatbot:
                 sum += sim * score
             ratings_map[sum] = i
             ratings.append(sum)
-        ratings = np.sort(ratings)[::-1]
-        for i in range(k):
-          recommendations.append(ratings_map[ratings[i]]) 
+        if self.num_ratings >= 5:
+          for i in range(k): 
+            recommendations.append(ratings_map[ratings[i]]) 
+        else:
+          for i in range(k): 
+            if ratings[i] >= threshold:
+              recommendations.append(ratings_map[ratings[i]]) 
+            else:
+              return None
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
