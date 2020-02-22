@@ -267,10 +267,24 @@ class Chatbot:
         
         return sentiment
               
-    def give_recommendations(self, recommendations):
+    def give_recommendations(self, recommendations, num_recs=3):
+      """
+      Helper function that was supposed to be called from process()
+      Takes in a list movieIDs and compile chatbot's response that contains movie recommendations
+
+      @param recommendations: list of movieIDs to recommend
+      @param num_recs: number of movies to recommend during a single turn of the conversation
+      @return rec_message: string of complete recommendation message
+      @return remaining: list containing the remaining movieIDs to recommend should the user asks for more recommendations
+      """
       titles = [self.movie_titles[movieID] for movieID in recommendations]
-      pattern = """Given what you told me, I think you would like the following movies: "{}", "{}", and "{}". Would you like more recommendations? """
-      return pattern.format(*recommendations[:3])
+      patterns = dict()
+      pattern[3] = """Given what you told me, I think you would like the following movies: "{}", "{}", and "{}". Would you like more recommendations?"""
+      pattern[2] = """Given what you told me, I think you would like the following movies: "{}" and "{}". Would you like more recommendations?"""
+      pattern[1] = """Given what you told me, I think you would like the following movie: "{}". Would you like more recommendations?"""
+      rec_message = pattern[num_recs].format(*recommendations[:num_recs])
+      remaining = recommendations[num_recs:]
+      return rec_message, remaining
 
 
     def extract_sentiment_for_movies(self, preprocessed_input):
