@@ -5,7 +5,7 @@
 import movielens
 import re
 import numpy as np
-import re
+from PorterStemmer import PorterStemmer
 
 # noinspection PyMethodMayBeStatic
 class Chatbot:
@@ -207,6 +207,9 @@ class Chatbot:
         As an optional creative extension, return -2 if the sentiment of the text
         is super negative and +2 if the sentiment of the text is super positive.
 
+        Supported lexicons so far: not, never, no, neither
+        Supported contrapositives so far: yet, still, but
+
         Example:
           sentiment = chatbot.extract_sentiment(chatbot.preprocess('I liked "The Titanic"'))
           print(sentiment) // prints 1
@@ -214,7 +217,80 @@ class Chatbot:
         :param preprocessed_input: a user-supplied line of text that has been pre-processed with preprocess()
         :returns: a numerical value for the sentiment of the text
         """
-        return 0
+        sentiments = dict()
+        f = open('data/sentiment.txt')
+        p = PorterStemmer()
+        for line in f:
+          kv = line.rstrip().split(',')
+          key = p.stem(kv[0], 0, len(kv[0])-1)
+          if kv[1] == 'pos':
+            sentiments[key] = 1
+          else:
+            sentiments[key] = -1
+        f.close()
+
+        # Use Porter Stemmer on the input
+        words = ''
+        word = ''
+        for c in preprocessed_input:
+          if c.isalpha():
+            word += c.lower()
+          else:
+            if word:
+              words += p.stem(word, 0, len(word)-1)
+              word = ''
+            words += c.lower()
+
+        # Remove the movie titles and puncuation
+        words = re.sub('"(.*?)"', '', words)
+        words = re.sub("[^a-zA-Z\s'-]", '', words)
+        words = words.split()
+
+        neg_lexicon = {'not', 'never', 'no', 'neither'}
+        negation = 1
+
+        sentiment = 0
+        for i in range(len(words)):
+          if sentiment != 0:
+            if 'but' in words[i] or 'yet' in words[i] or 'still' in words[i]:
+              sentiment = 0
+            continue
+          if words[i].endswith("n't") or words[i] in neg_lexicon:
+            negation = -1
+            continue
+          if words[i].endswith('i'):
+            candidate_i = words[i]
+            candidate_y = words[i][:-1] + 'y'
+            if candidate_i in sentiments:
+              sentiment = sentiments[candidate_i]
+            elif candidate_y in sentiments:
+              sentiment = sentiments[candidate_y]
+          else:
+            candidate = words[i]
+            if candidate in sentiments:
+              sentiment = sentiments[candidate]
+          sentiment *= negation
+        
+        return sentiment
+              
+    def give_recommendations(self, recommendations, num_recs=3):
+      """
+      Helper function that was supposed to be called from process()
+      Takes in a list movieIDs and compile chatbot's response that contains movie recommendations
+
+      @param recommendations: list of movieIDs to recommend
+      @param num_recs: number of movies to recommend during a single turn of the conversation
+      @return rec_message: string of complete recommendation message
+      @return remaining: list containing the remaining movieIDs to recommend should the user asks for more recommendations
+      """
+      titles = [self.movie_titles[movieID] for movieID in recommendations]
+      patterns = dict()
+      pattern[3] = """Given what you told me, I think you would like the following movies: "{}", "{}", and "{}". Would you like more recommendations?"""
+      pattern[2] = """Given what you told me, I think you would like the following movies: "{}" and "{}". Would you like more recommendations?"""
+      pattern[1] = """Given what you told me, I think you would like the following movie: "{}". Would you like more recommendations?"""
+      rec_message = pattern[num_recs].format(*recommendations[:num_recs])
+      remaining = recommendations[num_recs:]
+      return rec_message, remaining
 
     def extract_sentiment_for_movies(self, preprocessed_input):
         """Creative Feature: Extracts the sentiments from a line of pre-processed text
