@@ -5,6 +5,7 @@
 import movielens
 import re
 import numpy as np
+from numpy import linalg as LA
 from PorterStemmer import PorterStemmer
 
 # noinspection PyMethodMayBeStatic
@@ -23,6 +24,7 @@ class Chatbot:
         self.titles, ratings = movielens.ratings()
         self.movie_titles = [i[0] for i in self.titles] # extract just the titles into a single array
         self.sentiment = movielens.sentiment()
+        self.num_ratings = 0
 
         #############################################################################
         # TODO: Binarize the movie ratings matrix.                                  #
@@ -407,6 +409,11 @@ class Chatbot:
         # TODO: Compute cosine similarity between the two vectors.
         #############################################################################
         similarity = 0
+        dot = np.dot(u, v)
+        norm_u = LA.norm(u)
+        norm_v = LA.norm(v)
+        prod = norm_u * norm_v
+        similarity = dot / prod
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -446,11 +453,31 @@ class Chatbot:
 
         # Populate this list with k movie indices to recommend to the user.
         recommendations = []
-
+        ratings_map = {}
+        ratings = []
+        for i in range(ratings_matrix.shape[0]):
+          if user_ratings[i] == 0:
+            sum = 0
+            for j in range(user_ratings.size):
+              if user_ratings[j] != 0:
+                sim = self.similarity(ratings_matrix[i], ratings_matrix[j])
+                score = user_ratings[j]
+                sum += sim * score
+            ratings_map[sum] = i
+            ratings.append(sum)
+        if self.num_ratings >= 5:
+          for i in range(k): 
+            recommendations.append(ratings_map[ratings[i]]) 
+        else:
+          for i in range(k): 
+            if ratings[i] >= threshold:
+              recommendations.append(ratings_map[ratings[i]]) 
+            else:
+              return None
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
-        return recommendations
+        return recommendations  
 
     #############################################################################
     # 4. Debug info                                                             #
