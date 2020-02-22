@@ -17,7 +17,9 @@ class Chatbot:
         self.name = 'moviebot'
 
         self.creative = creative
-
+        self.movies_learned = 0
+        self.time_to_recommend = 0
+        self.recommended_movies = []
         # This matrix has the following shape: num_movies x num_users
         # The values stored in each row i and column j is the rating for
         # movie i by user j
@@ -46,7 +48,7 @@ class Chatbot:
         # TODO: Write a short greeting message                                      #
         #############################################################################
 
-        greeting_message = "How can I help you?"
+        greeting_message = "Hey there!"
 
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -59,13 +61,23 @@ class Chatbot:
         # TODO: Write a short farewell message                                      #
         #############################################################################
 
-        goodbye_message = "Have a nice day!"
+        goodbye_message = "It was nice to hear from you! Hope to chat again soon."
 
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
         return goodbye_message
+    
+    def handle_recommendation(self, line):
+        if self.time_to_recommend == 1:
+            
+            if line.lower() == "yes":
+            
 
+            elif line.lower() == "no":
+
+            else:
+    
     ###############################################################################
     # 2. Modules 2 and 3: extraction and transformation                           #
     ###############################################################################
@@ -94,12 +106,50 @@ class Chatbot:
         # possibly calling other functions. Although modular code is not graded,    #
         # it is highly recommended.                                                 #
         #############################################################################
+        if line.lower() == ":quit":
+            self.goodbye()
+            return       
         if self.creative:
             response = "I processed {} in creative mode!!".format(line)
-        else:
-            response = "I processed {} in starter mode!!".format(line)
-
-        self.extract_titles(line)
+        # else:
+        #    response = "I processed {} in starter mode!!".format(line)
+        extracted_movies = self.extract_titles(line)
+        if not self.creative:
+            if self.time_to_recommend == 1:
+                self.handle_recommendation(line)
+                return
+            if len(extracted_movies) == 0:
+                return "Oops! You forgot to put your movie title in quotation marks."
+            elif len(extracted_movies) > 1:
+                return "You've mentioned more than one movie. Can you please tell me about them one at a time?"
+            movie = extracted_movies[0]
+            movie_indicies = self.find_movies_by_title(movie)
+            if len(movie_indices) > 1:
+                return "I noticed there are multiple movies called " + movie ". Can you please add the year of the one you're talking about?"
+            elif len(movie_indices) == 0:
+                return "Unfortunately I wasn't able to find " + movie + ". :( Can you tell me your thoughts about another movie?"
+            sentiment = self.extract_sentiment(line)
+            if sentiment == 0:
+                return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
+            else:
+                elif sentiment == 1:
+                    self.movies_learned = self.movies_learned + 1
+                    if self.movie_learned == 5:
+                        self.handle_recommendation(line)
+                        return
+                    else:
+                        return "TODO"
+                elif sentiment == -1:
+                    self.movies_learned = self.movies_learned + 1
+                     if self.movie_learned == 5:
+                        self.handle_recommendation(line)
+                        return
+                    else:
+                        return "TODO: negative sentiment"
+                if self_movies_learned == 5:
+                    self.recommended_movies = self.recommend()
+        
+        response = "I'm having a hard time understanding. Please tell me about a movie and whether you liked it or didn't"
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -500,10 +550,7 @@ class Chatbot:
         can do and how the user can interact with it.
         """
         return """
-        Your task is to implement the chatbot as detailed in the PA6 instructions.
-        Remember: in the starter mode, movie names will come in quotation marks and
-        expressions of sentiment will be simple!
-        Write here the description for your own chatbot!
+        I'm MovieBot 1.0. I'd like to see if I can recommend movies that you'd like. But first, tell me what you think about a movie you've seen. Please make sure to put the name of the movie within double quotes.
         """
 
 
