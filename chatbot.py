@@ -15,9 +15,14 @@ class Chatbot:
     def __init__(self, creative=False):
         # The chatbot's default name is `moviebot`. Give your chatbot a new name.
         self.name = 'moviebot'
-
+        
         self.creative = creative
-
+        #self.movies_learned = 0
+        # state variables for recommend
+        self.time_to_recommend = 0 # the system is ready to recommend
+        self.user_wants_recommend = 0 # the user says 'yes'
+        self.recommended_movies = []
+        self.next_movie_to_recommend = 0
         # This matrix has the following shape: num_movies x num_users
         # The values stored in each row i and column j is the rating for
         # movie i by user j
@@ -25,6 +30,7 @@ class Chatbot:
         self.movie_titles = [i[0] for i in self.titles] # extract just the titles into a single array
         self.sentiment = movielens.sentiment()
         self.num_ratings = 0
+        self.threshold = 0.5
 
         #############################################################################
         # TODO: Binarize the movie ratings matrix.                                  #
@@ -32,6 +38,7 @@ class Chatbot:
         # Binarize the movie ratings before storing the binarized matrix.
         ratings = self.binarize(ratings)
         self.ratings = ratings
+        self.user_ratings = np.zeros(self.ratings.shape[0])
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -46,7 +53,7 @@ class Chatbot:
         # TODO: Write a short greeting message                                      #
         #############################################################################
 
-        greeting_message = "How can I help you?"
+        greeting_message = "Hey there!\n So, tell me what you think about a movie you've seen. Please make sure to put the name of the movie within double quotes."
 
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -59,13 +66,42 @@ class Chatbot:
         # TODO: Write a short farewell message                                      #
         #############################################################################
 
-        goodbye_message = "Have a nice day!"
+        goodbye_message = "It was nice to hear from you! Hope to chat again soon."
 
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
         return goodbye_message
+    
+    def handle_recommendation(self, line):
+        
+        if self.time_to_recommend == 1:     
+            if not line.lower() == "yes":
+                return "Sorry, I don't understand. Please say yes to continue or :quit to exit."
 
+            if self.user_wants_recommend == 0: # beginning of recommendations
+                self.user_wants_recommend = 1
+                self.recommended_movies = self.recommend(self.user_ratings, self.ratings)
+                    
+            if len(self.recommended_movies) == 0:
+                self.time_to_recommend = 0
+                return "Unfortunately I can't find any movies to recommend just yet. But let's keep going. Tell me about another movie."
+            elif self.next_movie_to_recommend < len(self.recommended_movies):
+                response = "I recommend \"" + self.movie_titles[self.recommended_movies[self.next_movie_to_recommend]] + "\"."
+                self.next_movie_to_recommend = self.next_movie_to_recommend + 1
+                
+                if self.next_movie_to_recommend == len(self.recommended_movies):
+                    response = response + " Well that's all I have for now! Type :quit to exit."
+                    self.time_to_recommend = 0
+                    self.user_wants_recommend = 0
+                else:
+                     response = response + " Would you like another recommendation?"
+                return response
+
+        else:
+            self.time_to_recommend = 1
+            return "You've told me your opinions about 5 movies--awesome! Would you like me to recommend some movies? Type yes to continue."
+    
     ###############################################################################
     # 2. Modules 2 and 3: extraction and transformation                           #
     ###############################################################################
@@ -94,12 +130,43 @@ class Chatbot:
         # possibly calling other functions. Although modular code is not graded,    #
         # it is highly recommended.                                                 #
         #############################################################################
+        if line.lower() == "who are you?":
+            return "Well..."
         if self.creative:
-            response = "I processed {} in creative mode!!".format(line)
-        else:
-            response = "I processed {} in starter mode!!".format(line)
+            response = "TODO: responses in creative mode"
+        extracted_movies = self.extract_titles(line)
+        # I'm not entirely sure which of the code below is just for starter mode and which is for both modes
+        if not self.creative:
+            if self.time_to_recommend == 1:
+                return self.handle_recommendation(line)
+           
+            if len(extracted_movies) == 0:
+                return "Oops! I can't tell if you forgot to put your movie title in quotation marks or didn't mention a movie at all. Try again please."
+            elif len(extracted_movies) > 1:
+                return "You've mentioned more than one movie. Can you please tell me about them one at a time?"
+            movie = extracted_movies[0]
+            movie_indices = self.find_movies_by_title(movie)
+            if len(movie_indices) > 1:
+                return "I noticed there are multiple movies called " + movie + ". Can you please add the year of the one you're talking about?"
+            elif len(movie_indices) == 0:
+                return "Unfortunately I wasn't able to find " + movie + ". :( Can you tell me your thoughts about another movie?"
+            sentiment = self.extract_sentiment(line)
+            if sentiment == 0:
+                return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
+            else:
+                if sentiment == 1:
+                    self.num_ratings = self.num_ratings + 1
+                    response = "So you liked " + movie + ", huh? " # the extra space here is on purpose because we will add to the response
+                elif sentiment == -1:
+                    self.num_ratings = self.num_ratings + 1
+                    response =  "Sounds like you didn't enjoy " + movie + ". "
+                if self.num_ratings >= 5:
+                    return self.handle_recommendation(line)
+                else:
+                    return response + "Tell me about another movie."
 
-        self.extract_titles(line)
+        # we shouldn't get here if the code above works, but just in case... 
+        response = "I'm having a hard time understanding. Please tell me about a movie and whether you liked it or didn't."
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -419,8 +486,7 @@ class Chatbot:
         #############################################################################
         return similarity
 
-    @staticmethod
-    def recommend(user_ratings, ratings_matrix, k=10, creative=False):
+    def recommend(self, user_ratings, ratings_matrix, k=10, creative=False):
         """Generate a list of indices of movies to recommend using collaborative filtering.
 
         You should return a collection of `k` indices of movies recommendations.
@@ -470,14 +536,14 @@ class Chatbot:
             recommendations.append(ratings_map[ratings[i]]) 
         else:
           for i in range(k): 
-            if ratings[i] >= threshold:
+            if ratings[i] >= self.threshold:
               recommendations.append(ratings_map[ratings[i]]) 
             else:
               return None
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
-        return recommendations  
+        return list(set(recommendations))  
 
     #############################################################################
     # 4. Debug info                                                             #
@@ -500,10 +566,7 @@ class Chatbot:
         can do and how the user can interact with it.
         """
         return """
-        Your task is to implement the chatbot as detailed in the PA6 instructions.
-        Remember: in the starter mode, movie names will come in quotation marks and
-        expressions of sentiment will be simple!
-        Write here the description for your own chatbot!
+        I'm MovieBot 1.0. I want to see if I can recommend movies that you'd like. You'll start by telling me about movies you've seen, making sure to put the movie names inside double quotes. You can type :quit at any time to exit.
         """
 
 
