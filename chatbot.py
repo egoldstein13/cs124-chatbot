@@ -53,7 +53,7 @@ class Chatbot:
         # TODO: Write a short greeting message                                      #
         #############################################################################
 
-        greeting_message = "Hey there!"
+        greeting_message = "Hey there!\n So, tell me what you think about a movie you've seen. Please make sure to put the name of the movie within double quotes."
 
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -73,7 +73,8 @@ class Chatbot:
         #############################################################################
         return goodbye_message
     
-    def handle_recommendation(self, line, response):
+    def handle_recommendation(self, line):
+        
         if self.time_to_recommend == 1:     
             if not line.lower() == "yes":
                 return "Sorry, I don't understand. Please say yes to continue or :quit to exit."
@@ -81,17 +82,18 @@ class Chatbot:
             if self.user_wants_recommend == 0: # beginning of recommendations
                 self.user_wants_recommend = 1
                 self.recommended_movies = self.recommend(self.user_ratings, self.ratings)
-            #else: # continue to recommend (if there are multiple recommendations)
                     
             if len(self.recommended_movies) == 0:
                 self.time_to_recommend = 0
                 return "Unfortunately I can't find any movies to recommend just yet. But let's keep going. Tell me about another movie."
             elif self.next_movie_to_recommend < len(self.recommended_movies):
-                response = "I recommend \"" + self.recommended_movies[self.next_movie_to_recommend] + "\"."
+                response = "I recommend \"" + self.movie_titles[self.recommended_movies[self.next_movie_to_recommend]] + "\"."
                 self.next_movie_to_recommend = self.next_movie_to_recommend + 1
                 
                 if self.next_movie_to_recommend == len(self.recommended_movies):
-                    response = response +  " Well that's all I have for now! Type :quit to exit."
+                    response = response + " Well that's all I have for now! Type :quit to exit."
+                    self.time_to_recommend = 0
+                    self.user_wants_recommend = 0
                 else:
                      response = response + " Would you like another recommendation?"
                 return response
@@ -128,7 +130,8 @@ class Chatbot:
         # possibly calling other functions. Although modular code is not graded,    #
         # it is highly recommended.                                                 #
         #############################################################################
-
+        if line.lower() == "who are you?":
+            return "Well..."
         if self.creative:
             response = "TODO: responses in creative mode"
         extracted_movies = self.extract_titles(line)
@@ -138,7 +141,7 @@ class Chatbot:
                 return self.handle_recommendation(line)
            
             if len(extracted_movies) == 0:
-                return "Oops! You forgot to put your movie title in quotation marks."
+                return "Oops! I can't tell if you forgot to put your movie title in quotation marks or didn't mention a movie at all. Try again please."
             elif len(extracted_movies) > 1:
                 return "You've mentioned more than one movie. Can you please tell me about them one at a time?"
             movie = extracted_movies[0]
@@ -158,9 +161,7 @@ class Chatbot:
                     self.num_ratings = self.num_ratings + 1
                     response =  "Sounds like you didn't enjoy " + movie + ". "
                 if self.num_ratings >= 5:
-                    #self.recommended_movies = self.recommend(self.user_ratings, self.ratings)
-                    #self.time_to_recommend = 1
-                    return self.handle_recommendation(line, response)
+                    return self.handle_recommendation(line)
                 else:
                     return response + "Tell me about another movie."
 
@@ -542,7 +543,7 @@ class Chatbot:
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
-        return recommendations  
+        return list(set(recommendations))  
 
     #############################################################################
     # 4. Debug info                                                             #
@@ -565,7 +566,7 @@ class Chatbot:
         can do and how the user can interact with it.
         """
         return """
-        I'm MovieBot 1.0. I'd like to see if I can recommend movies that you'd like. But first, tell me what you think about a movie you've seen. Please make sure to put the name of the movie within double quotes. You can type :quit at any time to exit.
+        I'm MovieBot 1.0. I want to see if I can recommend movies that you'd like. You'll start by telling me about movies you've seen, making sure to put the movie names inside double quotes. You can type :quit at any time to exit.
         """
 
 
