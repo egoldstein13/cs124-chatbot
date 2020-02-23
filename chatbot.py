@@ -126,13 +126,15 @@ class Chatbot:
     ###############################################################################
     # 2. Modules 2 and 3: extraction and transformation                           #
     ###############################################################################
+
     def movie_not_found(self, movie):
           closest_movie = self.find_movies_closest_to_title(self, movie)
-          if(len(closest_movie) == 0):
+          if(len(closest_movie) == 0): # no close match found
                 return random.choice(self.response_directory["no_match"]).format(movie=movie)
-          else:
+          else: # close match found, suggest any one
                 new_movie = self.movie_titles[closest_movie[0]]
                 return random.choice(self.response_directory["closest_movie"]).format(old=movie, new=new_movie)
+
 
     def process(self, line):
         """Process a line of input from the REPL and generate a response.
