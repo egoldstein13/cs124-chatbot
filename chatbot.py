@@ -7,7 +7,7 @@ import re
 import numpy as np
 from numpy import linalg as LA
 from PorterStemmer import PorterStemmer
-
+import random
 # noinspection PyMethodMayBeStatic
 class Chatbot:
     """Simple class to implement the chatbot for PA 6."""
@@ -31,7 +31,28 @@ class Chatbot:
         self.sentiment = movielens.sentiment()
         self.num_ratings = 0
         self.threshold = 0.5
+        self.response_directory = {
+          "zero_movies_starter": [
+            "Oops! I can't tell if you forgot to put your movie title in quotation marks or didn't mention a movie at all. Try again please.",
+          "Sorry, I wasn't able to understand the movie name, could you try again?"
+          ], 
 
+          "multiple_movies_starter": [
+            "You've mentioned more than one movie. Can you please tell me about them one at a time?",
+          "I'm sorry, I can't really handle too much external stimulus. :p Can you please try one movie at a time?"
+          ],
+
+          "closest_movie": [
+            "D'oh. I couldn't find '{old}' in my records, did you mean '{new}'?",
+           "'{old}' doesn't exist in my database, did you mean '{new}'?"
+           ],
+
+           "no_match": [
+              "Unfortunately I wasn't able to find '{movie}' :(. Can you tell me your thoughts about another movie?",
+              "Sorry man, I couldn't find '{movie}' in my database :(. Do you have another in mind?"
+           ]
+
+        }
         #############################################################################
         # TODO: Binarize the movie ratings matrix.                                  #
         #############################################################################
@@ -105,6 +126,13 @@ class Chatbot:
     ###############################################################################
     # 2. Modules 2 and 3: extraction and transformation                           #
     ###############################################################################
+    def movie_not_found(self, movie):
+          closest_movie = self.find_movies_closest_to_title(self, movie)
+          if(len(closest_movie) == 0):
+                return random.choice(self.response_directory["no_match"]).format(movie=movie)
+          else:
+                new_movie = self.movie_titles[closest_movie[0]]
+                return random.choice(self.response_directory["closest_movie"]).format(old=movie, new=new_movie)
 
     def process(self, line):
         """Process a line of input from the REPL and generate a response.
@@ -130,10 +158,10 @@ class Chatbot:
         # possibly calling other functions. Although modular code is not graded,    #
         # it is highly recommended.                                                 #
         #############################################################################
-        if line.lower() == "who are you?":
-            return "Well..."
-        if self.creative:
-            response = "TODO: responses in creative mode"
+        if line.lower() == "who are you?": return "Well..."
+
+        if self.creative: response = "TODO: responses in creative mode"
+
         extracted_movies = self.extract_titles(line)
         # I'm not entirely sure which of the code below is just for starter mode and which is for both modes
         if not self.creative:
@@ -141,15 +169,18 @@ class Chatbot:
                 return self.handle_recommendation(line)
            
             if len(extracted_movies) == 0:
-                return "Oops! I can't tell if you forgot to put your movie title in quotation marks or didn't mention a movie at all. Try again please."
+                return random.choice(self.response_directory["zero_movies_starter"])
             elif len(extracted_movies) > 1:
-                return "You've mentioned more than one movie. Can you please tell me about them one at a time?"
+                return random.choice(self.response_directory["multiple_movies_starter"])
+
+
             movie = extracted_movies[0]
             movie_indices = self.find_movies_by_title(movie)
+
             if len(movie_indices) > 1:
-                return "I noticed there are multiple movies called " + movie + ". Can you please add the year of the one you're talking about?"
+                return "I noticed there are multiple movies called \"" + movie + "\". Can you please add the year of the one you're talking about?"
             elif len(movie_indices) == 0:
-                return "Unfortunately I wasn't able to find " + movie + ". :( Can you tell me your thoughts about another movie?"
+                return self.movie_not_found(movie)
             sentiment = self.extract_sentiment(line)
             if sentiment == 0:
                 return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
@@ -399,7 +430,8 @@ class Chatbot:
         :returns: a list of movie indices with titles closest to the given title and within edit distance max_distance
         """
 
-        pass
+        return [] # test , harry change as needed
+        return [1000] # test , harry change as needed
 
     def disambiguate(self, clarification, candidates):
         """Creative Feature: Given a list of movies that the user could be talking about
