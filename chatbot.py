@@ -169,39 +169,46 @@ class Chatbot:
               self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["disliked_movie"]).format(movie=movie)
 
-    def process(self, line):
-        """Process a line of input from the REPL and generate a response.
-
-        This is the method that is called by the REPL loop directly with user input.
-
-        You should delegate most of the work of processing the user's input to
-        the helper functions you write later in this class.
-
-        Takes the input string from the REPL and call delegated functions that
-          1) extract the relevant information, and
-          2) transform the information into a response to the user.
-
-        Example:
-          resp = chatbot.process('I loved "The Notebook" so much!!')
-          print(resp) // prints 'So you loved "The Notebook", huh?'
-
-        :param line: a user-supplied line of text
-        :returns: a string containing the chatbot's response to the user input
-        """
-        #############################################################################
-        # TODO: Implement the extraction and transformation in this method,         #
-        # possibly calling other functions. Although modular code is not graded,    #
-        # it is highly recommended.                                                 #
-        #############################################################################
-        if line.lower() == "who are you?": return "Well..."
-
-        if self.creative: response = "TODO: responses in creative mode"
-        input_for_sentiment = line
+    def process_starter(self, line):
         extracted_movies = self.extract_titles(line)
-        # I'm not entirely sure which of the code below is just for starter mode and which is for both modes
 
         if not self.creative:
+            if self.time_to_recommend == 1:
+                return self.handle_recommendation(line)
+           
+            if len(extracted_movies) == 0:
+                return random.choice(self.response_directory["zero_movies_starter"])
+            elif len(extracted_movies) > 1:
+                return random.choice(self.response_directory["multiple_movies_starter"])
+
+            movie = extracted_movies[0]
+            movie_indices = self.find_movies_by_title(movie)
+
+            if len(movie_indices) > 1:
+                return "I noticed there are multiple movies called " + movie + ". Can you please add the year of the one you're talking about?"
+            elif len(movie_indices) == 0:
+                return "Unfortunately I wasn't able to find " + movie + ". :( Can you tell me your thoughts about another movie?"
+
+            sentiment = self.extract_sentiment(line)
+            if sentiment == 0:
+                return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
+            else:
+                if sentiment == 1:
+                    self.num_ratings = self.num_ratings + 1
+                    response = "So you liked " + movie + ", huh? " # the extra space here is on purpose because we will add to the response
+                elif sentiment == -1:
+                    self.num_ratings = self.num_ratings + 1
+                    response =  "Sounds like you didn't enjoy " + movie + ". "
+                if self.num_ratings >= 5:
+                    return self.handle_recommendation(line)
+                else:
+                    return response + "Tell me about another movie."
+
+    def process_creative(self, line):
             
+            extracted_movies = self.extract_titles(line)
+            input_for_sentiment = line
+
             # STEP 1: Check if its time to recommend
             if self.time_to_recommend == 1:
                 return self.handle_recommendation(line)
@@ -249,8 +256,38 @@ class Chatbot:
             else:
                   return response + "Tell me about another movie."
 
-        # we shouldn't get here if the code above works, but just in case... 
-        response = "I'm having a hard time understanding. Please tell me about a movie and whether you liked it or didn't."
+    def process(self, line):
+        """Process a line of input from the REPL and generate a response.
+
+        This is the method that is called by the REPL loop directly with user input.
+
+        You should delegate most of the work of processing the user's input to
+        the helper functions you write later in this class.
+
+        Takes the input string from the REPL and call delegated functions that
+          1) extract the relevant information, and
+          2) transform the information into a response to the user.
+
+        Example:
+          resp = chatbot.process('I loved "The Notebook" so much!!')
+          print(resp) // prints 'So you loved "The Notebook", huh?'
+
+        :param line: a user-supplied line of text
+        :returns: a string containing the chatbot's response to the user input
+        """
+        #############################################################################
+        # TODO: Implement the extraction and transformation in this method,         #
+        # possibly calling other functions. Although modular code is not graded,    #
+        # it is highly recommended.                                                 #
+        #############################################################################
+        if line.lower() == "who are you?": return "Well..."
+
+        try:
+          if self.creative: return self.process_creative(line) 
+          else: return self.process_starter(line)
+        except: 
+          response = "I'm having a hard time understanding. Please tell me about a movie and whether you liked it or didn't."
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -304,10 +341,13 @@ class Chatbot:
         """
         movies = []
 
-        if not self.creative:
+        if self.creative:
+          # azhia you can replace this code with the creative stuff for this function
           regex_with_quotes = r'\"(.*?)\"'
           movies = re.findall(regex_with_quotes, preprocessed_input)
-
+        else:
+          regex_with_quotes = r'\"(.*?)\"'
+          movies = re.findall(regex_with_quotes, preprocessed_input)   
         return movies
 
     def find_movies_by_title(self, title):
