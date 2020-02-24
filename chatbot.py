@@ -23,6 +23,9 @@ class Chatbot:
         self.user_wants_recommend = 0 # the user says 'yes'
         self.recommended_movies = []
         self.next_movie_to_recommend = 0
+        self.just_prompted_spellcheck = 0
+        self.spell_corrected_movie = ""
+        self.line_before_spellcheck = ""
         # This matrix has the following shape: num_movies x num_users
         # The values stored in each row i and column j is the rating for
         # movie i by user j
@@ -34,7 +37,7 @@ class Chatbot:
         self.response_directory = {
           "zero_movies_starter": [
             "Oops! I can't tell if you forgot to put your movie title in quotation marks or didn't mention a movie at all. Try again please.",
-          "Sorry, I wasn't able to understand the movie name, could you try again?"
+            "Sorry, I wasn't able to understand the movie name from that sentence, could you try again?"
           ], 
 
           "multiple_movies_starter": [
@@ -50,6 +53,26 @@ class Chatbot:
            "no_match": [
               "Unfortunately I wasn't able to find '{movie}' :(. Can you tell me your thoughts about another movie?",
               "Sorry man, I couldn't find '{movie}' in my database :(. Do you have another in mind?"
+           ],
+
+           "spellcheck_fail": [
+             "Oh okay, my bad. I don't think your movie exists in my database then. Could you try talking about another movie?",
+             "Oh no, I must not have record of your movie then. Try talking about another movie."
+           ],
+
+           "liked_movie": [
+             "You liked '{movie}', huh? Me too! ",
+             "I enjoyed '{movie}' too! "
+           ],
+
+           "disliked_movie": [
+             "Oh no, sounds like you didn't enjoy '{movie}' much, huh? ",
+             "Guess you didn't like '{movie}' at all."
+           ],
+
+           "couldnt_understand_yes_no": [
+             "I don't think I understand, could you try typing 'yes' or 'no' again?",
+             "Sorry, was that a 'yes' or 'no'?"
            ]
 
         }
@@ -103,7 +126,7 @@ class Chatbot:
             if self.user_wants_recommend == 0: # beginning of recommendations
                 self.user_wants_recommend = 1
                 self.recommended_movies = self.recommend(self.user_ratings, self.ratings)
-                    
+             
             if len(self.recommended_movies) == 0:
                 self.time_to_recommend = 0
                 return "Unfortunately I can't find any movies to recommend just yet. But let's keep going. Tell me about another movie."
@@ -127,14 +150,24 @@ class Chatbot:
     # 2. Modules 2 and 3: extraction and transformation                           #
     ###############################################################################
 
-    def movie_not_found(self, movie):
+    def movie_not_found(self, movie, line):
           closest_movie = self.find_movies_closest_to_title(self, movie)
           if(len(closest_movie) == 0): # no close match found
                 return random.choice(self.response_directory["no_match"]).format(movie=movie)
           else: # close match found, suggest any one
+                self.line_before_spellcheck = line  # storing this to pass it to sentiment analysis in the next round
                 new_movie = self.movie_titles[closest_movie[0]]
+                self.spell_corrected_movie = new_movie
+                self.just_prompted_spellcheck = 1
                 return random.choice(self.response_directory["closest_movie"]).format(old=movie, new=new_movie)
 
+    def handle_sentiment(self, movie, line, sentiment):
+          if sentiment == 1:
+              self.num_ratings = self.num_ratings + 1
+              return random.choice(self.response_directory["liked_movie"]).format(movie=movie)
+          elif sentiment == -1:
+              self.num_ratings = self.num_ratings + 1
+              return random.choice(self.response_directory["disliked_movie"]).format(movie=movie)
 
     def process(self, line):
         """Process a line of input from the REPL and generate a response.
@@ -163,40 +196,58 @@ class Chatbot:
         if line.lower() == "who are you?": return "Well..."
 
         if self.creative: response = "TODO: responses in creative mode"
-
+        input_for_sentiment = line
         extracted_movies = self.extract_titles(line)
         # I'm not entirely sure which of the code below is just for starter mode and which is for both modes
+
         if not self.creative:
+            
+            # STEP 1: Check if its time to recommend
             if self.time_to_recommend == 1:
                 return self.handle_recommendation(line)
-           
+
+            # STEP 2: Check if its time to get their approval on closest-spelled-movie suggestion                
+            if self.just_prompted_spellcheck == 1:
+                  if line.lower() == "yes": 
+                      # SPELL SUGGESTION WORKED
+                      extracted_movies = [self.spell_corrected_movie]      
+                      self.spell_corrected_movie = "" 
+                      self.just_prompted_spellcheck = 0
+                      input_for_sentiment = self.line_before_spellcheck
+                      
+                  elif line.lower() == "no": 
+                      # SPELL SUGGESTION DIDNT WORK
+                      self.just_prompted_spellcheck = 0
+                      self.spell_corrected_movie = ""
+                      return random.choice(self.response_directory["spellcheck_fail"]) 
+
+                  else: # their response wasn't "yes" or "no"
+                      return random.choice(self.response_directory["couldnt_understand_yes_no"]) 
+          
+            # STEP 3: Handle no movies found, or too many movies found
             if len(extracted_movies) == 0:
                 return random.choice(self.response_directory["zero_movies_starter"])
             elif len(extracted_movies) > 1:
                 return random.choice(self.response_directory["multiple_movies_starter"])
 
-
+            # STEP 4: Edge cases passed, get the movie from the database
             movie = extracted_movies[0]
             movie_indices = self.find_movies_by_title(movie)
 
-            if len(movie_indices) > 1:
-                return "I noticed there are multiple movies called \"" + movie + "\". Can you please add the year of the one you're talking about?"
-            elif len(movie_indices) == 0:
-                return self.movie_not_found(movie)
-            sentiment = self.extract_sentiment(line)
-            if sentiment == 0:
-                return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
+            if len(movie_indices) == 0: return self.movie_not_found(movie, line)
+            elif len(movie_indices) > 1: return "I noticed there are multiple movies called \"" + movie + "\". Can you please add the year of the one you're talking about?"
+
+            # STEP 5: If movie found in database, record its sentiment
+            else: sentiment = self.extract_sentiment(input_for_sentiment)
+            
+            if sentiment == 0: return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
+            else: response = self.handle_sentiment(movie, input_for_sentiment, sentiment)
+
+           # STEP 6: If 5 movies registered, move on to making the recommendation
+            if self.num_ratings >= 5:
+                  return self.handle_recommendation(line)
             else:
-                if sentiment == 1:
-                    self.num_ratings = self.num_ratings + 1
-                    response = "So you liked " + movie + ", huh? " # the extra space here is on purpose because we will add to the response
-                elif sentiment == -1:
-                    self.num_ratings = self.num_ratings + 1
-                    response =  "Sounds like you didn't enjoy " + movie + ". "
-                if self.num_ratings >= 5:
-                    return self.handle_recommendation(line)
-                else:
-                    return response + "Tell me about another movie."
+                  return response + "Tell me about another movie."
 
         # we shouldn't get here if the code above works, but just in case... 
         response = "I'm having a hard time understanding. Please tell me about a movie and whether you liked it or didn't."
@@ -432,8 +483,8 @@ class Chatbot:
         :returns: a list of movie indices with titles closest to the given title and within edit distance max_distance
         """
 
-        return [] # test , harry change as needed
         return [1000] # test , harry change as needed
+        return [] # test , harry change as needed
 
     def disambiguate(self, clarification, candidates):
         """Creative Feature: Given a list of movies that the user could be talking about
