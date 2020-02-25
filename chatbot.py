@@ -39,6 +39,11 @@ class Chatbot:
         self.response_directory = {
           "zero_movies_starter": [
             "Oops! I can't tell if you forgot to put your movie title in quotation marks or didn't mention a movie at all. Try again please.",
+            "Sorry, could you try again with the movie title in quotations?"
+          ], 
+
+          "zero_movies_creative": [
+            "Oops! I couldn't find any movie in that statement. Try again please.",
             "Sorry, I wasn't able to understand the movie name from that sentence, could you try again?"
           ], 
 
@@ -235,13 +240,14 @@ class Chatbot:
           
             # STEP 3: Handle no movies found, or too many movies found
             if len(extracted_movies) == 0:
-                return random.choice(self.response_directory["zero_movies_starter"])
+                return random.choice(self.response_directory["zero_movies_creative"])
             elif len(extracted_movies) > 1:
-                return random.choice(self.response_directory["multiple_movies_starter"])
+                return random.choice(self.response_directory["multiple_movies_creative"])
 
             # STEP 4: Edge cases passed, get the movie from the database
             movie = extracted_movies[0]
             movie_indices = self.find_movies_by_title(movie)
+            print("Found", movie, movie_indices,"-----")
 
             if len(movie_indices) == 0: return self.movie_not_found(movie, line)
             elif len(movie_indices) > 1: return "I noticed there are multiple movies called \"" + movie + "\". Can you please add the year of the one you're talking about?"
@@ -343,10 +349,10 @@ class Chatbot:
         """
         movies = []
 
-        if not self.creative:
-          regex_with_quotes = r'\"(.*?)\"'
-          movies = re.findall(regex_with_quotes, preprocessed_input)
-        else:
+        regex_with_quotes = r'\"(.*?)\"'
+        movies = re.findall(regex_with_quotes, preprocessed_input)
+
+        if self.creative:
           words = preprocessed_input.lower()
           words = words.split()
           # get combinations of words
