@@ -242,7 +242,7 @@ class Chatbot:
             if len(extracted_movies) == 0:
                 return random.choice(self.response_directory["zero_movies_creative"])
             elif len(extracted_movies) > 1:
-                return random.choice(self.response_directory["multiple_movies_creative"])
+                return random.choice(self.response_directory["multiple_movies_starter"])
 
             # STEP 4: Edge cases passed, get the movie from the database
             movie = extracted_movies[0]
