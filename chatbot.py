@@ -7,6 +7,7 @@ import re
 import numpy as np
 from numpy import linalg as LA
 from PorterStemmer import PorterStemmer
+import itertools
 
 # noinspection PyMethodMayBeStatic
 class Chatbot:
@@ -223,7 +224,21 @@ class Chatbot:
         if not self.creative:
           regex_with_quotes = r'\"(.*?)\"'
           movies = re.findall(regex_with_quotes, preprocessed_input)
-
+        else:
+          words = preprocessed_input.lower()
+          words = words.split()
+          # get combinations of words
+          for i in range(len(words)):
+            titles = list(itertools.combinations(words, i))
+            for j in range(len(titles)):
+              string = ""
+              for word in titles[j]:
+                word = word[0].upper() + word[1:]
+                string += word + " "
+              string = string[:len(string) - 1]
+              result = self.find_movies_by_title(string)
+              if result:
+                movies.append(string)
         return movies
 
     def find_movies_by_title(self, title):
@@ -378,7 +393,86 @@ class Chatbot:
         :returns: a list of tuples, where the first item in the tuple is a movie title,
           and the second is the sentiment in the text toward that movie
         """
-        pass
+        sentiments = dict()
+        f = open('data/sentiment.txt')
+        p = PorterStemmer()
+        for line in f:
+          kv = line.rstrip().split(',')
+          key = p.stem(kv[0], 0, len(kv[0])-1)
+          if kv[1] == 'pos':
+            sentiments[key] = 1
+          else:
+            sentiments[key] = -1
+        f.close()
+        movie_sents = []
+        sentences = preprocessed_input.split(".")
+        for i in range(len(sentences) - 1):
+          movie_sents += self.extract_helper(p, sentiments, sentences[i])
+        return movie_sents
+
+    def extract_helper(self, p, sentiments, sentence):
+        titles = self.extract_titles(sentence)
+        # Use Porter Stemmer on the input
+        words = ''
+        word = ''
+        for c in sentence:
+          if c.isalpha():
+            word += c.lower()
+          else:
+            if word:
+              words += p.stem(word, 0, len(word)-1)
+              word = ''
+            words += c.lower()
+
+        # Remove the movie titles and puncuation
+        just_words = re.sub('"(.*?)"', '', words)
+        just_words = re.sub("[^a-zA-Z\s'-]", '', just_words)
+        just_words = just_words.split()
+        words = words.split()
+
+        neg_lexicon = {'not', 'never', 'no', 'neither'}
+        negation = 1
+        same_sent = 0
+        same_lexicon = {'both', 'and', 'either', 'or', 'along', 'with', 'as', 'well'}
+        diff_lexicon = {'but', 'however', 'although', 'while', 'yet', 'though', 'except'}
+        for i in range(len(just_words)):
+          if just_words[i] in same_lexicon:
+            same_sent = 1
+          elif just_words[i] in diff_lexicon:
+            same_sent = -1
+
+        sentiment = 0
+        movie_sentiments = []
+        for i in range(len(words)):
+          if words[i][0] == '"':
+            movie_sentiments.append((titles[0], sentiment))
+            if same_sent == 1:
+              for j in range(len(titles[1:])):
+                movie_sentiments.append((titles[j + 1], sentiment))
+            elif same_sent == -1:
+              for j in range(len(titles[1:])):
+                movie_sentiments.append((titles[j + 1], sentiment * -1))
+            return movie_sentiments
+          if sentiment != 0:
+            if 'but' in words[i] or 'yet' in words[i] or 'still' in words[i]:
+              sentiment = 0
+            continue
+          if words[i].endswith("n't") or words[i] in neg_lexicon:
+            negation = -1
+            continue
+          if words[i].endswith('i'):
+            candidate_i = words[i]
+            candidate_y = words[i][:-1] + 'y'
+            if candidate_i in sentiments:
+              sentiment = sentiments[candidate_i]
+            elif candidate_y in sentiments:
+              sentiment = sentiments[candidate_y]
+          else:
+            candidate = words[i]
+            if candidate in sentiments:
+              sentiment = sentiments[candidate]
+          sentiment *= negation
+        return movie_sentiments
 
     def find_movies_closest_to_title(self, title, max_distance=3):
         """Creative Feature: Given a potentially misspelled movie title,
