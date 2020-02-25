@@ -17,8 +17,7 @@ class Chatbot:
         self.name = 'moviebot'
         
         self.creative = creative
-        #self.movies_learned = 0
-        # state variables for recommend
+        # state variables in process()
         self.time_to_recommend = 0 # the system is ready to recommend
         self.user_wants_recommend = 0 # the user says 'yes'
         self.recommended_movies = []
@@ -250,7 +249,6 @@ class Chatbot:
         movie = title_parts.group('movie').strip() if title_parts.group('movie') else ""
         year = title_parts.group('year').strip() if title_parts.group('year') else ""
         patterns = []
-        #print(self.movie_titles)
         if year == "":
             patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " \(\d{4}\)", flags=re.IGNORECASE))
             if article != "":
@@ -259,12 +257,23 @@ class Chatbot:
             patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " " + re.escape(year)))
             if article != "":
                 patterns.append(re.compile(re.escape(movie) + ",[ ]?" + article + " " + re.escape(year), flags=re.IGNORECASE))
+        if self.creative:
+            foreign_alt_parts = re.match("(?P<article>(le |les |la |el |il |las |i |une |der |die |lo |los |das |de |un |en |den |det )?)(?P<movie>.*)", title, flags=re.IGNORECASE)
+            article = foreign_alt_parts.group('article').strip() if foreign_alt_parts.group('article') != None else ""
+            movie = foreign_alt_parts.group('movie').strip() if foreign_alt_parts.group('movie') else ""
+            if foreign_alt_parts != None:
+                if article != "":
+                    patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+                else:
+                    patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+    
+            patterns.append(re.compile("^" + movie + "[^\w]", re.IGNORECASE)) # disambiguation part 1
         for r in patterns:
             result = list(filter(r.match, self.movie_titles))
             if len(result) > 0:
                 for movie in result:
                     movie_list.append(self.movie_titles.index(movie))
-        return movie_list
+        return list(set(movie_list))
 
     def extract_sentiment(self, preprocessed_input):
         """Extract a sentiment rating from a line of pre-processed text.
