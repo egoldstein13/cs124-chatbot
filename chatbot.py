@@ -258,15 +258,21 @@ class Chatbot:
             if article != "":
                 patterns.append(re.compile(re.escape(movie) + ",[ ]?" + article + " " + re.escape(year), flags=re.IGNORECASE))
         if self.creative:
-            foreign_alt_parts = re.match("(?P<article>(le |les |la |el |il |las |i |une |der |die |lo |los |das |de |un |en |den |det )?)(?P<movie>.*)", title, flags=re.IGNORECASE)
+            foreign_alt_parts = re.match("(?P<article>(le |les |la |el |il |las |i |une |der |die |lo |los |das |de |un |en |den |det )?)(?P<movie>.*(?<!\(\d{4}\)))(?P<year>\(\d{4}\))?$", title, flags=re.IGNORECASE)
             article = foreign_alt_parts.group('article').strip() if foreign_alt_parts.group('article') != None else ""
             movie = foreign_alt_parts.group('movie').strip() if foreign_alt_parts.group('movie') else ""
+            year = title_parts.group('year').strip() if title_parts.group('year') else ""
             if foreign_alt_parts != None:
-                if article != "":
-                    patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+                if year == "":
+                    if article != "":
+                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+                    else:
+                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
                 else:
-                    patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
-    
+                    if article != "":
+                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) " + re.escape(year), flags=re.IGNORECASE))
+                    else:
+                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) " + re.escape(year), flags=re.IGNORECASE))
             patterns.append(re.compile("^" + movie + "[^\w]", re.IGNORECASE)) # disambiguation part 1
         for r in patterns:
             result = list(filter(r.match, self.movie_titles))
