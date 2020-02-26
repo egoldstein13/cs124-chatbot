@@ -435,7 +435,12 @@ class Chatbot:
         :param candidates: a list of movie indices
         :returns: a list of indices corresponding to the movies identified by the clarification
         """
-        pass
+        possible_movies = []
+        for c in candidates:
+            match = re.search(clarification.lower() + "[^\w]", title_list[c].lower(), flags = re.IGNORECASE)
+            if match != None:
+                possible_movies.append(c)
+        return possible_movies
 
     #############################################################################
     # 3. Movie Recommendation helper functions                                  #
