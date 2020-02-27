@@ -95,7 +95,7 @@ class Chatbot:
                     self.time_to_recommend = 0
                     self.user_wants_recommend = 0
                 else:
-                     response = response + " Would you like another recommendation?"
+                    response = response + " Would you like another recommendation?"
                 return response
 
         else:
@@ -221,8 +221,8 @@ class Chatbot:
         movies = []
 
         if not self.creative:
-          regex_with_quotes = r'\"(.*?)\"'
-          movies = re.findall(regex_with_quotes, preprocessed_input)
+            regex_with_quotes = r'\"(.*?)\"'
+            movies = re.findall(regex_with_quotes, preprocessed_input)
 
         return movies
 
@@ -290,25 +290,25 @@ class Chatbot:
         f = open('data/sentiment.txt')
         p = PorterStemmer()
         for line in f:
-          kv = line.rstrip().split(',')
-          key = p.stem(kv[0], 0, len(kv[0])-1)
-          if kv[1] == 'pos':
-            sentiments[key] = 1
-          else:
-            sentiments[key] = -1
+            kv = line.rstrip().split(',')
+            key = p.stem(kv[0], 0, len(kv[0])-1)
+            if kv[1] == 'pos':
+                sentiments[key] = 1
+            else:
+                sentiments[key] = -1
         f.close()
 
         # Use Porter Stemmer on the input
         words = ''
         word = ''
         for c in preprocessed_input:
-          if c.isalpha():
-            word += c.lower()
-          else:
-            if word:
-              words += p.stem(word, 0, len(word)-1)
-              word = ''
-            words += c.lower()
+            if c.isalpha():
+                word += c.lower()
+            else:
+                if word:
+                    words += p.stem(word, 0, len(word)-1)
+                    word = ''
+                words += c.lower()
 
         # Remove the movie titles and puncuation
         words = re.sub('"(.*?)"', '', words)
@@ -320,46 +320,46 @@ class Chatbot:
 
         sentiment = 0
         for i in range(len(words)):
-          if sentiment != 0:
-            if 'but' in words[i] or 'yet' in words[i] or 'still' in words[i]:
-              sentiment = 0
-            continue
-          if words[i].endswith("n't") or words[i] in neg_lexicon:
-            negation = -1
-            continue
-          if words[i].endswith('i'):
-            candidate_i = words[i]
-            candidate_y = words[i][:-1] + 'y'
-            if candidate_i in sentiments:
-              sentiment = sentiments[candidate_i]
-            elif candidate_y in sentiments:
-              sentiment = sentiments[candidate_y]
-          else:
-            candidate = words[i]
-            if candidate in sentiments:
-              sentiment = sentiments[candidate]
-          sentiment *= negation
+            if sentiment != 0:
+                if 'but' in words[i] or 'yet' in words[i] or 'still' in words[i]:
+                    sentiment = 0
+                continue
+            if words[i].endswith("n't") or words[i] in neg_lexicon:
+                negation = -1
+                continue
+            if words[i].endswith('i'):
+                candidate_i = words[i]
+                candidate_y = words[i][:-1] + 'y'
+                if candidate_i in sentiments:
+                    sentiment = sentiments[candidate_i]
+                elif candidate_y in sentiments:
+                    sentiment = sentiments[candidate_y]
+            else:
+                candidate = words[i]
+                if candidate in sentiments:
+                    sentiment = sentiments[candidate]
+            sentiment *= negation
         
         return sentiment
               
     def give_recommendations(self, recommendations, num_recs=3):
-      """
-      Helper function that was supposed to be called from process()
-      Takes in a list movieIDs and compile chatbot's response that contains movie recommendations
+        """
+        Helper function that was supposed to be called from process()
+        Takes in a list movieIDs and compile chatbot's response that contains movie recommendations
 
-      @param recommendations: list of movieIDs to recommend
-      @param num_recs: number of movies to recommend during a single turn of the conversation
-      @return rec_message: string of complete recommendation message
-      @return remaining: list containing the remaining movieIDs to recommend should the user asks for more recommendations
-      """
-      titles = [self.movie_titles[movieID] for movieID in recommendations]
-      patterns = dict()
-      pattern[3] = """Given what you told me, I think you would like the following movies: "{}", "{}", and "{}". Would you like more recommendations?"""
-      pattern[2] = """Given what you told me, I think you would like the following movies: "{}" and "{}". Would you like more recommendations?"""
-      pattern[1] = """Given what you told me, I think you would like the following movie: "{}". Would you like more recommendations?"""
-      rec_message = pattern[num_recs].format(*recommendations[:num_recs])
-      remaining = recommendations[num_recs:]
-      return rec_message, remaining
+        @param recommendations: list of movieIDs to recommend
+        @param num_recs: number of movies to recommend during a single turn of the conversation
+        @return rec_message: string of complete recommendation message
+        @return remaining: list containing the remaining movieIDs to recommend should the user asks for more recommendations
+        """
+        titles = [self.movie_titles[movieID] for movieID in recommendations]
+        patterns = dict()
+        pattern[3] = """Given what you told me, I think you would like the following movies: "{}", "{}", and "{}". Would you like more recommendations?"""
+        pattern[2] = """Given what you told me, I think you would like the following movies: "{}" and "{}". Would you like more recommendations?"""
+        pattern[1] = """Given what you told me, I think you would like the following movie: "{}". Would you like more recommendations?"""
+        rec_message = pattern[num_recs].format(*recommendations[:num_recs])
+        remaining = recommendations[num_recs:]
+        return rec_message, remaining
 
     def extract_sentiment_for_movies(self, preprocessed_input):
         """Creative Feature: Extracts the sentiments from a line of pre-processed text
@@ -380,6 +380,31 @@ class Chatbot:
         """
         pass
 
+    @staticmethod
+    def edit_distance(s, t):
+        m = len(s)
+        n = len(t)
+
+        d = [[0 for _ in range(n + 1)] for _ in range(m + 1)]
+
+        for i in range(1, m + 1):
+            d[i][0] = i
+        
+        for j in range(1, n + 1):
+            d[0][j] = j
+
+        for j in range(1, n + 1):
+            for i in range(1, m + 1):
+                if s[i - 1] == t[j - 1]:
+                    substitutionCost = 0
+                else:
+                    substitutionCost = 2
+                
+                d[i][j] = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + substitutionCost)
+        
+        return d[m][n]
+        
+
     def find_movies_closest_to_title(self, title, max_distance=3):
         """Creative Feature: Given a potentially misspelled movie title,
         return a list of the movies in the dataset whose titles have the least edit distance
@@ -399,7 +424,41 @@ class Chatbot:
         :returns: a list of movie indices with titles closest to the given title and within edit distance max_distance
         """
 
-        pass
+        title = title.lower()
+
+        # Extract the movie title (target) from input string
+        input_extractor = re.compile("(?P<article>(the\s|an\s|a\s)?)(?P<movie>.*(?<!\(\d{4}\)))(?P<year>\(\d{4}\))?$", flags=re.IGNORECASE)
+        input_matches = input_extractor.match(title)
+        if input_matches == None:
+            return []
+        target = input_matches.group('movie').strip() if input_matches.group('movie') else ""
+
+        # Compile the regular expression to extract titles from our movie list
+        database_extractor = re.compile("(.*?)(,\s(The|An|A))?\s\(\d{4}.*\)", flags=re.IGNORECASE)
+
+        min_distance = float("inf")
+        closest_movies = []
+        for index, movie in enumerate(self.movie_titles):
+            movie_title = database_extractor.match(movie)
+            if movie_title == None:
+                movie_title = movie
+            else:
+                movie_title = movie_title.group(1).strip()
+            movie_title = movie_title.lower()
+            if movie_title.startswith('the'):
+                movie_title = movie_title[3:]
+            if movie_title.startswith('a'):
+                movie_title = movie_title[1:]
+            if movie_title.startswith('an'):
+                movie_title = movie_title[2:]
+            dist = self.edit_distance(movie_title, target)
+            if dist <= max_distance:
+                if dist < min_distance:
+                    min_distance = dist
+                    closest_movies = [index]
+                elif dist == min_distance:
+                    closest_movies.append(index)
+        return closest_movies
 
     def disambiguate(self, clarification, candidates):
         """Creative Feature: Given a list of movies that the user could be talking about
