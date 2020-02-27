@@ -287,17 +287,25 @@ class Chatbot:
         :returns: a numerical value for the sentiment of the text
         """
         sentiments = dict()
-        f = open('data/sentiment.txt')
         p = PorterStemmer()
-        for line in f:
-            kv = line.rstrip().split(',')
-            key = p.stem(kv[0], 0, len(kv[0])-1)
-            if kv[1] == 'pos':
-                sentiments[key] = 1
-            else:
-                sentiments[key] = -1
-        f.close()
+        for key in self.sentiment:
+            stemmed_key = p.stem(key, 0, len(key)-1)
+            if self.sentiment[key] == 'pos':
+                sentiments[stemmed_key] = 1
+            elif self.sentiment[key] == 'poss':
+                sentiments[stemmed_key] = 2
+            elif self.sentiment[key] == 'neg':
+                sentiments[stemmed_key] = -1
+            elif self.sentiment[key] == 'negs':
+                sentiments[stemmed_key] = -2
 
+        # Fine-grained sentiment extraction
+        strong_coeff = 1
+
+        # Detect emotion using punctuation
+        if preprocessed_input.count('!') >= 2 or preprocessed_input.count('?') >= 2:
+            strong_coeff = 2
+        
         # Use Porter Stemmer on the input
         words = ''
         word = ''
@@ -315,15 +323,16 @@ class Chatbot:
         words = re.sub("[^a-zA-Z\s'-]", '', words)
         words = words.split()
 
+        # Fine-grained sentiment - detect repetitions
+        for i in range(1, len(words)):
+            if words[i] == words[i - 1]:
+                strong_coeff = 2
+
         neg_lexicon = {'not', 'never', 'no', 'neither'}
         negation = 1
 
         sentiment = 0
         for i in range(len(words)):
-            if sentiment != 0:
-                if 'but' in words[i] or 'yet' in words[i] or 'still' in words[i]:
-                    sentiment = 0
-                continue
             if words[i].endswith("n't") or words[i] in neg_lexicon:
                 negation = -1
                 continue
@@ -338,9 +347,14 @@ class Chatbot:
                 candidate = words[i]
                 if candidate in sentiments:
                     sentiment = sentiments[candidate]
-            sentiment *= negation
+            if sentiment != 0:
+                sentiment *= negation
+                negation = 1
+            if abs(sentiment) == 2:
+                sentiment //= 2
+                strong_coeff = 2
         
-        return sentiment
+        return sentiment * strong_coeff
               
     def give_recommendations(self, recommendations, num_recs=3):
         """
@@ -384,24 +398,18 @@ class Chatbot:
     def edit_distance(s, t):
         m = len(s)
         n = len(t)
-
         d = [[0 for _ in range(n + 1)] for _ in range(m + 1)]
-
         for i in range(1, m + 1):
             d[i][0] = i
-        
         for j in range(1, n + 1):
             d[0][j] = j
-
         for j in range(1, n + 1):
             for i in range(1, m + 1):
                 if s[i - 1] == t[j - 1]:
                     substitutionCost = 0
                 else:
                     substitutionCost = 2
-                
                 d[i][j] = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + substitutionCost)
-        
         return d[m][n]
         
 
