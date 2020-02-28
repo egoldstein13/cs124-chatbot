@@ -793,6 +793,8 @@ class Chatbot:
         norm_u = LA.norm(u)
         norm_v = LA.norm(v)
         prod = norm_u * norm_v
+        if prod == 0:
+            return dot
         similarity = dot / prod
         #############################################################################
         #                             END OF YOUR CODE                              #
