@@ -6,6 +6,8 @@ import movielens
 import re
 import numpy as np
 from numpy import linalg as LA
+import sys
+sys.path.append('./deps/')
 from PorterStemmer import PorterStemmer
 import itertools
 import random
@@ -422,7 +424,9 @@ class Chatbot:
             if len(result) > 0:
                 for movie in result:
                     movie_list.append(self.movie_titles.index(movie))
-        return list(set(movie_list))
+        movie_list = list(set(movie_list))
+        movie_list.sort()
+        return movie_list
 
     def extract_sentiment(self, preprocessed_input):
         """Extract a sentiment rating from a line of pre-processed text.
@@ -726,7 +730,7 @@ class Chatbot:
         """
         possible_movies = []
         for c in candidates:
-            match = re.search(clarification.lower() + "[^\w]", title_list[c].lower(), flags = re.IGNORECASE)
+            match = re.search(clarification + "[^\w]", self.titles[c], flags = re.IGNORECASE)
             if match != None:
                 possible_movies.append(c)
         return possible_movies
