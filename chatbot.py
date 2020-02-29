@@ -846,19 +846,13 @@ class Chatbot:
                 sum += sim * score
             ratings_map[sum] = i
             ratings.append(sum)
-        if self.num_ratings >= 5:
-          for i in range(k): 
-            recommendations.append(ratings_map[ratings[i]]) 
-        else:
-          for i in range(k): 
-            if ratings[i] >= self.threshold:
-              recommendations.append(ratings_map[ratings[i]]) 
-            else:
-              return None
+        ratings = np.sort(ratings)[::-1]  
+        for i in range(k): 
+          recommendations.append(ratings_map[ratings[i]]) 
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
-        return list(set(recommendations))  
+        return recommendations
 
     #############################################################################
     # 4. Debug info                                                             #
