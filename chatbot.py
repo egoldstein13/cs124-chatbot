@@ -530,9 +530,9 @@ class Chatbot:
         """
         titles = [self.movie_titles[movieID] for movieID in recommendations]
         patterns = dict()
-        pattern[3] = """Given what you told me, I think you would like the following movies: "{}", "{}", and "{}". Would you like more recommendations?"""
-        pattern[2] = """Given what you told me, I think you would like the following movies: "{}" and "{}". Would you like more recommendations?"""
-        pattern[1] = """Given what you told me, I think you would like the following movie: "{}". Would you like more recommendations?"""
+        patterns[3] = """Given what you told me, I think you would like the following movies: "{}", "{}", and "{}". Would you like more recommendations?"""
+        patterns[2] = """Given what you told me, I think you would like the following movies: "{}" and "{}". Would you like more recommendations?"""
+        patterns[1] = """Given what you told me, I think you would like the following movie: "{}". Would you like more recommendations?"""
         rec_message = pattern[num_recs].format(*recommendations[:num_recs])
         remaining = recommendations[num_recs:]
         return rec_message, remaining
