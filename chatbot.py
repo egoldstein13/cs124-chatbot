@@ -11,6 +11,7 @@ sys.path.append('./deps/')
 from PorterStemmer import PorterStemmer
 import itertools
 import random
+import string
 
 # noinspection PyMethodMayBeStatic
 class Chatbot:
@@ -360,16 +361,44 @@ class Chatbot:
           for i in range(len(words)):
             titles = list(itertools.combinations(words, i))
             for j in range(len(titles)):
-              string = ""
+              title = ""
               for word in titles[j]:
                 word = word[0].upper() + word[1:]
-                string += word + " "
-              string = string[:len(string) - 1]
-              result = self.find_movies_by_title(string)
+                title += word + " "
+              title = title[:len(title) - 1]
+              if i >= 1:
+                while title[len(title) - 1] in string.punctuation:
+                  title = title[:len(title) - 1]
+              result = self.find_helper(title)
               if result:
-                movies.append(string)
+                movies.append(title)
         return movies
-
+    
+    def find_helper(self, title):
+        movie_list = []
+        title_parts = re.match("(?P<article>(the\s|an\s|a\s)?)(?P<movie>.*(?<!\(\d{4}\)))(?P<year>\(\d{4}\))?$", title, flags=re.IGNORECASE)
+        if title_parts == None:
+            return []
+        article = title_parts.group('article').strip() if title_parts.group('article') != None else ""
+        movie = title_parts.group('movie').strip() if title_parts.group('movie') else ""
+        year = title_parts.group('year').strip() if title_parts.group('year') else ""
+        patterns = []
+        #print(self.movie_titles)
+        if year == "":
+            patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " \(\d{4}\)", flags=re.IGNORECASE))
+            if article != "":
+                patterns.append(re.compile(re.escape(movie) + ",[ ]?" + article + " \(\d{4}\)", flags=re.IGNORECASE))
+        else:
+            patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " " + re.escape(year)))
+            if article != "":
+                patterns.append(re.compile(re.escape(movie) + ",[ ]?" + article + " " + re.escape(year), flags=re.IGNORECASE))
+        for r in patterns:
+            result = list(filter(r.match, self.movie_titles))
+            if len(result) > 0:
+                for movie in result:
+                    movie_list.append(self.movie_titles.index(movie))
+        return movie_list
+    
     def find_movies_by_title(self, title):
         """ Given a movie title, return a list of indices of matching movies.
 
