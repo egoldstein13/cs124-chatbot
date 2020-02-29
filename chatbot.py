@@ -520,6 +520,7 @@ class Chatbot:
                 strong_coeff = 2
 
         neg_lexicon = {'not', 'never', 'no', 'neither'}
+        strong_lexicon = {'realli', 'veri'}
         negation = 1
 
         sentiment = 0
@@ -527,6 +528,8 @@ class Chatbot:
             if words[i].endswith("n't") or words[i] in neg_lexicon:
                 negation = -1
                 continue
+            if words[i] in strong_lexicon:
+              strong_coeff = 2
             if words[i].endswith('i'):
                 candidate_i = words[i]
                 candidate_y = words[i][:-1] + 'y'
