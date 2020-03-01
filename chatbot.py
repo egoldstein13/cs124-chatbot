@@ -201,12 +201,14 @@ class Chatbot:
             if sentiment == 0:
                 return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
             else:
-                if sentiment == 1:
+                if sentiment > 0:
                     self.num_ratings = self.num_ratings + 1
                     response = "So you liked " + movie + ", huh? " # the extra space here is on purpose because we will add to the response
-                elif sentiment == -1:
+                elif sentiment < 0:
                     self.num_ratings = self.num_ratings + 1
                     response =  "Sounds like you didn't enjoy " + movie + ". "
+
+
                 if self.num_ratings >= 5:
                     return self.handle_recommendation(line)
                 else:
