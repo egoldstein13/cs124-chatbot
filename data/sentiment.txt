@@ -54,7 +54,7 @@ steadfastness,pos
 deplorable,negs
 straight,pos
 triumph,poss
-enjoy,pos
+enjoy,poss
 veritable,pos
 force,negs
 monotonous,neg
@@ -126,7 +126,7 @@ moral,pos
 stern,neg
 prodigy,poss
 stand,pos
-devastation,neg
+devastation,negs
 undesirable,neg
 utilization,pos
 insecurity,neg
@@ -342,7 +342,7 @@ renaissance,pos
 refugee,neg
 inexpensive,pos
 tolerant,pos
-flawless,pos
+flawless,poss
 oppose,neg
 hopeless,neg
 attune,pos
@@ -464,7 +464,7 @@ rapture,pos
 alight,pos
 retire,neg
 sage,pos
-brilliance,pos
+brilliance,poss
 undue,neg
 uneasiness,neg
 liberty,pos
@@ -703,7 +703,7 @@ athletic,pos
 boastful,neg
 dignify,pos
 bruise,neg
-fantastic,pos
+fantastic,poss
 repose,pos
 beset,neg
 disguise,neg
@@ -769,7 +769,7 @@ hunt,neg
 envision,pos
 deal,neg
 repudiate,neg
-excitedness,pos
+excitedness,poss
 refinement,pos
 deaf,neg
 dead,negs
@@ -855,7 +855,7 @@ questionable,neg
 starve,neg
 overjoyed,pos
 immorality,neg
-fascination,pos
+fascination,poss
 heal,pos
 discourage,neg
 vitality,pos
@@ -1241,7 +1241,7 @@ giddy,pos
 accomplish,pos
 concur,pos
 impurity,neg
-enjoyable,pos
+enjoyable,poss
 profit,pos
 irony,neg
 interference,neg
@@ -1317,7 +1317,7 @@ brainy,pos
 pomp,pos
 uninformed,neg
 orphan,neg
-greatness,pos
+greatness,poss
 stabilize,pos
 snatch,neg
 playmate,pos
@@ -1370,7 +1370,7 @@ fracture,neg
 objective,pos
 destroy,negs
 hedonistic,neg
-wonder,pos
+wonder,poss
 blunt,neg
 commonplace,neg
 amiable,pos
@@ -1568,7 +1568,7 @@ breakdown,neg
 exhaust,neg
 drowsiness,neg
 mockery,neg
-enjoyment,pos
+enjoyment,poss
 defy,neg
 assist,pos
 companion,pos
@@ -2811,7 +2811,7 @@ gloat,neg
 meet,pos
 consideration,pos
 adulterate,neg
-great,pos
+great,poss
 engage,pos
 talent,pos
 survivor,pos
@@ -3174,7 +3174,7 @@ inane,neg
 outlive,pos
 contemptuous,neg
 worth-while,pos
-super,pos
+super,poss
 reprehensible,neg
 violation,neg
 please,poss
@@ -3568,7 +3568,7 @@ dangerous,neg
 grieve,neg
 distract,neg
 warmth,pos
-excitement,pos
+excitement,poss
 cruel,negs
 convince,pos
 limit,neg
@@ -3622,3 +3622,4 @@ compete,neg
 understand,pos
 defend,pos
 unspeakable,negs
+solid,pos

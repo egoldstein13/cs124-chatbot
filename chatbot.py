@@ -495,9 +495,13 @@ class Chatbot:
         strong_coeff = 2
 
         # Detect emotion using punctuation
-        if preprocessed_input.count('!') >= 2 or preprocessed_input.count('?') >= 2:
+        if preprocessed_input.count('!') + preprocessed_input.count('?') >= 2:
             strong_coeff = 2
-        
+
+        # For lines that do not have punctuations in the end
+        if preprocessed_input and preprocessed_input[-1].isalpha():
+          preprocessed_input = preprocessed_input + '\n'
+
         # Use Porter Stemmer on the input
         words = ''
         word = ''
@@ -514,6 +518,7 @@ class Chatbot:
         words = re.sub('"(.*?)"', '', words)
         words = re.sub("[^a-zA-Z\s'-]", '', words)
         words = words.split()
+        # print(words)
 
         # Fine-grained sentiment - detect repetitions
         for i in range(1, len(words)):
@@ -521,7 +526,7 @@ class Chatbot:
                 strong_coeff = 2
 
         neg_lexicon = {'not', 'never', 'no', 'neither'}
-        strong_lexicon = {'realli', 'veri', 'much'}
+        strong_lexicon = {'realli', 'veri', 'much', 'most', 'absolut', 'ever', 'forev'}
         negation = 1
 
         sentiment = 0
@@ -543,8 +548,8 @@ class Chatbot:
                 if candidate in sentiments:
                     sentiment = sentiments[candidate]
             if sentiment != 0:
-                sentiment *= negation
-                negation = 1
+              sentiment *= negation
+              negation = 1
             if abs(sentiment) == 2:
                 sentiment //= 2
                 strong_coeff = 2
@@ -606,6 +611,11 @@ class Chatbot:
 
     def extract_helper(self, p, sentiments, sentence):
         titles = self.extract_titles(sentence)
+
+        # For lines that do not have punctuations in the end
+        if sentence and sentence[-1].isalpha():
+          sentence = sentence + '\n'
+
         # Use Porter Stemmer on the input
         words = ''
         word = ''
@@ -665,7 +675,9 @@ class Chatbot:
             candidate = words[i]
             if candidate in sentiments:
               sentiment = sentiments[candidate]
-          sentiment *= negation
+          if sentiment != 0:
+            sentiment *= negation
+            negation = 1
         return movie_sentiments
 
     @staticmethod
