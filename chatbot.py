@@ -7,7 +7,6 @@ import re
 import numpy as np
 from numpy import linalg as LA
 import sys
-sys.path.append('./deps/')
 from PorterStemmer import PorterStemmer
 import itertools
 import random
