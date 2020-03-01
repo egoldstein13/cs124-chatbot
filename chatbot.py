@@ -170,10 +170,10 @@ class Chatbot:
                 return random.choice(self.response_directory["closest_movie"]).format(old=movie, new=new_movie)
 
     def handle_sentiment(self, movie, line, sentiment):
-          if sentiment == 1:
+          if sentiment > 0:
               self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["liked_movie"]).format(movie=movie)
-          elif sentiment == -1:
+          elif sentiment < 0:
               self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["disliked_movie"]).format(movie=movie)
 
