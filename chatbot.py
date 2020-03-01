@@ -159,7 +159,7 @@ class Chatbot:
     ###############################################################################
 
     def movie_not_found(self, movie, line):
-          closest_movie = self.find_movies_closest_to_title(self, movie)
+          closest_movie = self.find_movies_closest_to_title(movie)
           if(len(closest_movie) == 0): # no close match found
                 return random.choice(self.response_directory["no_match"]).format(movie=movie)
           else: # close match found, suggest any one
