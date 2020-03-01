@@ -40,27 +40,33 @@ class Chatbot:
         self.response_directory = {
           "zero_movies_starter": [
             "Oops! I can't tell if you forgot to put your movie title in quotation marks or didn't mention a movie at all. Try again please.",
-            "Sorry, could you try again with the movie title in quotations?"
+            "Sorry, could you try again with the movie title in quotations?",
+            "I'm scratching my head over here because I can't figure out what movie you're referring to. Try again, man!"
           ], 
 
           "zero_movies_creative": [
             "Oops! I couldn't find any movie in that statement. Try again please.",
-            "Sorry, I wasn't able to understand the movie name from that sentence, could you try again?"
+            "Sorry, I wasn't able to understand the movie name from that sentence, could you try again?",
+            "I couldn't find the movie you're talking about. It's not you, it's me! Try again though.",
+            "I'm trying as hard as I can but still can't find that movie! Can you try again?"
           ], 
 
           "multiple_movies_starter": [
             "You've mentioned more than one movie. Can you please tell me about them one at a time?",
-          "I'm sorry, I can't really handle too much external stimulus. :p Can you please try one movie at a time?"
+            "I'm sorry, I can't really handle too much external stimulus. :p Can you please try one movie at a time?",
+            "There might be more than one movie with that name. Can you be more specific?",
           ],
 
           "closest_movie": [
             "D'oh. I couldn't find '{old}' in my records, did you mean '{new}'? (Yes or no)",
-           "'{old}' doesn't exist in my database, did you mean '{new}'? (Yes or no)"
+           "'{old}' doesn't exist in my database, did you mean '{new}'? (Yes or no)",
+           "Hmm, I can't seem to find '{old}'. Did you mean '{new}'? (Yes or no)",
            ],
 
            "no_match": [
               "Unfortunately I wasn't able to find '{movie}' :(. Can you tell me your thoughts about another movie?",
-              "Sorry man, I couldn't find '{movie}' in my database :(. Do you have another in mind?"
+              "Sorry man, I couldn't find '{movie}' in my database :(. Do you have another in mind?",
+              "I can't find '{movie}', but maybe it wasn't meant to be. Let's try another movie."
            ],
 
            "spellcheck_fail": [
@@ -72,6 +78,10 @@ class Chatbot:
              "You liked '{movie}', huh? Me too! ",
              "I liked '{movie}' too! ",
              "I know! '{movie}' was good! ",
+             "I enjoyed '{movie}' too! ",
+             "Wow, I thought I was the only one that enjoyed '{movie}'! ",
+             "Cool, so you liked '{movie}'. ",
+             "I can't believe you liked '{movie}' too! "
            ],
 
             "really_liked_movie": [
@@ -87,6 +97,9 @@ class Chatbot:
              "Oh no, sounds like you didn't enjoy '{movie}' much, huh? ",
              "Guess you didn't like '{movie}' much. ",
             "Tell me about it :(. '{movie}' was a bummer. ",
+            "I agree, I didn't like '{movie}' either. ",
+             "Okay, you didn't like '{movie}'. ",
+             "Seems like you didn'y enjoy '{movie}'. "
            ],
 
            "really_disliked_movie": [
@@ -94,6 +107,7 @@ class Chatbot:
              "Damn, you didn't like '{movie}' at all. ",
              "Really? You didn't like {movie}? Hmm. I didn't like it much either.  ",
              "Tell me about it :(. '{movie}' was such a big bummer. ",
+             "Guess you didn't like '{movie}' at all. ",
            ],
 
            "couldnt_understand_yes_no": [
@@ -124,6 +138,8 @@ class Chatbot:
              "Since I'm a 'Starter Mode' bot, I can only understand if you put the name of the movie within double quotes",
              "Please remember to put the name of the movie within double quotes!",
              "Oh and please put the exact name of the movie in double quotes."
+             "Sorry, was that a 'yes' or 'no'?",
+             "Errrr... what? 'yes' or 'no'?"
            ]
 
       
@@ -178,6 +194,7 @@ class Chatbot:
 
             if self.user_wants_recommend == 0: # beginning of recommendations
                 self.user_wants_recommend = 1
+                print("Give me one moment while I figure out some movies to recommend/n")
                 self.recommended_movies = self.recommend(self.user_ratings, self.ratings)
              
             if len(self.recommended_movies) == 0:
@@ -252,13 +269,7 @@ class Chatbot:
             if sentiment == 0:
                 return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
             else:
-                if sentiment > 0:
-                    self.num_ratings = self.num_ratings + 1
-                    response = "So you liked " + movie + ", huh? " # the extra space here is on purpose because we will add to the response
-                elif sentiment < 0:
-                    self.num_ratings = self.num_ratings + 1
-                    response =  "Sounds like you didn't enjoy " + movie + ". "
-
+                response = self.handle_sentiment(movie, line, sentiment)
 
                 if self.num_ratings >= 5:
                     return self.handle_recommendation(line)
@@ -283,7 +294,7 @@ class Chatbot:
             
             extracted_movies = self.extract_titles(line)
             input_for_sentiment = line
-
+            print(extracted_movies)
             # STEP 1: Check if its time to recommend
             if self.time_to_recommend == 1:
                 return self.handle_recommendation(line)
@@ -312,16 +323,22 @@ class Chatbot:
                   if arb == "": return random.choice(self.response_directory["zero_movies_creative"])
                   else: return arb
             elif len(extracted_movies) > 1:
+                print(extracted_movies)
                 return random.choice(self.response_directory["multiple_movies_starter"])
 
             # STEP 4: Edge cases passed, get the movie from the database
             movie = extracted_movies[0]
             movie_indices = self.find_movies_by_title(movie)
+<<<<<<< bd14d63303a837db5bbeab687022ba42e7a382c2
 
             if len(movie_indices) == 0: 
                 arb = self.handle_arb_inputs(line) 
                 if arb == "": return self.movie_not_found(movie, line)
                 else: return arb
+=======
+            print(movie_indices)
+            if len(movie_indices) == 0: return self.movie_not_found(movie, line)
+>>>>>>> fix alt/foreign titles
             elif len(movie_indices) > 1: return "I noticed there are multiple movies called \"" + movie + "\". Can you please add the year of the one you're talking about?"
 
             # STEP 5: If movie found in database, record its sentiment
@@ -440,7 +457,7 @@ class Chatbot:
                 while title[len(title) - 1] in string.punctuation:
                   title = title[:len(title) - 1]
               result = self.find_helper(title)
-              if result:
+              if result and result not in movies:
                 movies.append(title)
         return movies
     
@@ -467,7 +484,7 @@ class Chatbot:
             if len(result) > 0:
                 for movie in result:
                     movie_list.append(self.movie_titles.index(movie))
-        return movie_list
+        return list(set(movie_list))
     
     def find_movies_by_title(self, title):
         """ Given a movie title, return a list of indices of matching movies.
@@ -493,6 +510,7 @@ class Chatbot:
         movie = title_parts.group('movie').strip() if title_parts.group('movie') else ""
         year = title_parts.group('year').strip() if title_parts.group('year') else ""
         patterns = []
+        patterns_creative = []
         if year == "":
             patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " \(\d{4}\)", flags=re.IGNORECASE))
             if article != "":
@@ -506,23 +524,36 @@ class Chatbot:
             article = foreign_alt_parts.group('article').strip() if foreign_alt_parts.group('article') != None else ""
             movie = foreign_alt_parts.group('movie').strip() if foreign_alt_parts.group('movie') else ""
             year = title_parts.group('year').strip() if title_parts.group('year') else ""
+            #match = re.search("\([^\(\)]+\)",movie)
             if foreign_alt_parts != None:
                 if year == "":
                     if article != "":
-                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + article + " " + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
                     else:
-                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
                 else:
                     if article != "":
-                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) " + re.escape(year), flags=re.IGNORECASE))
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + article + " " + re.escape(movie) + "\) " + re.escape(year), flags=re.IGNORECASE))
+
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) " + re.escape(year), flags=re.IGNORECASE))
                     else:
-                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) " + re.escape(year), flags=re.IGNORECASE))
-            patterns.append(re.compile("^" + movie + "[^\w]", re.IGNORECASE)) # disambiguation part 1
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) " + re.escape(year), flags=re.IGNORECASE))
+        if year == "": 
+            patterns_creative.append(re.compile("^" + movie + "[^\w]", re.IGNORECASE)) # disambiguation part 1
         for r in patterns:
             result = list(filter(r.match, self.movie_titles))
             if len(result) > 0:
                 for movie in result:
                     movie_list.append(self.movie_titles.index(movie))
+        for r in patterns_creative:
+            result = list(filter(r.match, self.movie_titles))
+            if len(result) > 0:
+                for movie in result:
+                    match = re.match("(?P<article>(le |les |la |el |il |las |i |une |der |die |lo |los |das |de |un |en |den |det )?)(?P<movie>[^\(\)]+ \([^\(\)]+\) (?<!\(\d{4}\)))(?P<year>\(\d{4}\))?$", movie, flags=re.IGNORECASE)
+                    if self.creative and foreign_alt_parts != None and match == None:
+                        continue
         movie_list = list(set(movie_list))
         movie_list.sort()
         return movie_list
@@ -966,7 +997,7 @@ class Chatbot:
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
-        return recommendations
+        return list(set(recommendations))
 
     #############################################################################
     # 4. Debug info                                                             #
