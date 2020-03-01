@@ -70,17 +70,36 @@ class Chatbot:
 
            "liked_movie": [
              "You liked '{movie}', huh? Me too! ",
-             "I enjoyed '{movie}' too! "
+             "I liked '{movie}' too! "
+           ],
+
+            "really_liked_movie": [
+             "Boy, you really liked '{movie}', huh? Me too! ",
+             "I enjoyed '{movie}' a lot too! ",
+             "I know! '{movie}' was great! ",
+             "'{movie}' was absolutely bomb! ",
            ],
 
            "disliked_movie": [
              "Oh no, sounds like you didn't enjoy '{movie}' much, huh? ",
-             "Guess you didn't like '{movie}' at all."
+             "Guess you didn't like '{movie}' much. "
+           ],
+
+           "really_disliked_movie": [
+             "Oh no, sounds like you didn't enjoy '{movie}' at all, huh? ",
+             "Damn, you didn't like '{movie}' at all. ",
+             "Really? You didn't like {movie}? Hmm. I didn't like it much either.  "
            ],
 
            "couldnt_understand_yes_no": [
              "I don't think I understand, could you try typing 'yes' or 'no' again?",
              "Sorry, was that a 'yes' or 'no'?"
+           ],
+
+            "tell_me_more": [
+             "Tell me about another movie.",
+             "Anyway, tell me about another movie.",
+             "What about more movies? Can you tell me about another one?"
            ]
 
         }
@@ -170,12 +189,18 @@ class Chatbot:
                 return random.choice(self.response_directory["closest_movie"]).format(old=movie, new=new_movie)
 
     def handle_sentiment(self, movie, line, sentiment):
-          if sentiment > 0:
+          if sentiment == 1:
               self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["liked_movie"]).format(movie=movie)
-          elif sentiment < 0:
+          elif sentiment == 2:
+              self.num_ratings = self.num_ratings + 1
+              return random.choice(self.response_directory["really_liked_movie"]).format(movie=movie)
+          elif sentiment == -1:
               self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["disliked_movie"]).format(movie=movie)
+          elif sentiment == -2:
+              self.num_ratings = self.num_ratings + 1
+              return random.choice(self.response_directory["really_disliked_movie"]).format(movie=movie)
 
     def process_starter(self, line):
         extracted_movies = self.extract_titles(line)
@@ -212,7 +237,7 @@ class Chatbot:
                 if self.num_ratings >= 5:
                     return self.handle_recommendation(line)
                 else:
-                    return response + "Tell me about another movie."
+                    return response + random.choice(self.response_directory["tell_me_more"])
 
     def process_creative(self, line):
             
@@ -265,7 +290,7 @@ class Chatbot:
             if self.num_ratings >= 5:
                   return self.handle_recommendation(line)
             else:
-                  return response + "Tell me about another movie."
+                  return response + random.choice(self.response_directory["tell_me_more"])
 
     def process(self, line):
         """Process a line of input from the REPL and generate a response.
