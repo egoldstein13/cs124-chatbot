@@ -194,9 +194,9 @@ class Chatbot:
 
             if self.user_wants_recommend == 0: # beginning of recommendations
                 self.user_wants_recommend = 1
-                print("Give me one moment while I figure out some movies to recommend/n")
+                print("Give me one moment while I figure out some movies to recommend...")
                 self.recommended_movies = self.recommend(self.user_ratings, self.ratings)
-             
+                print(self.recommended_movies)
             if len(self.recommended_movies) == 0:
                 self.time_to_recommend = 0
                 return "Unfortunately I can't find any movies to recommend just yet. But let's keep going. Tell me about another movie."
@@ -204,13 +204,18 @@ class Chatbot:
                 response = "I recommend \"" + self.movie_titles[self.recommended_movies[self.next_movie_to_recommend]] + "\"."
                 self.next_movie_to_recommend = self.next_movie_to_recommend + 1
                 
-                if self.next_movie_to_recommend == len(self.recommended_movies):
+                if self.next_movie_to_recommend >= len(self.recommended_movies):
                     response = response + " Well that's all I have for now! Type :quit to exit."
                     self.time_to_recommend = 0
                     self.user_wants_recommend = 0
                 else:
                     response = response + " Would you like another recommendation?"
                 return response
+            elif self.next_movie_to_recommend >= len(self.recommended_movies):
+                    response = response + " Well that's all I have for now! Type :quit to exit."
+                    self.time_to_recommend = 0
+                    self.user_wants_recommend = 0
+
 
         else:
             self.time_to_recommend = 1
@@ -233,16 +238,12 @@ class Chatbot:
 
     def handle_sentiment(self, movie, line, sentiment):
           if sentiment == 1:
-              self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["liked_movie"]).format(movie=movie)
           elif sentiment == 2:
-              self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["really_liked_movie"]).format(movie=movie)
           elif sentiment == -1:
-              self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["disliked_movie"]).format(movie=movie)
           elif sentiment == -2:
-              self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["really_disliked_movie"]).format(movie=movie)
 
     def process_starter(self, line):
@@ -270,6 +271,9 @@ class Chatbot:
                 return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
             else:
                 response = self.handle_sentiment(movie, line, sentiment)
+                if self.user_ratings[movie_indices[0]] == 0:
+                    self.num_ratings = self.num_ratings + 1
+                    self.user_ratings[movie_indices[0]] = sentiment
 
                 if self.num_ratings >= 5:
                     return self.handle_recommendation(line)
@@ -294,7 +298,6 @@ class Chatbot:
             
             extracted_movies = self.extract_titles(line)
             input_for_sentiment = line
-            print(extracted_movies)
             # STEP 1: Check if its time to recommend
             if self.time_to_recommend == 1:
                 return self.handle_recommendation(line)
@@ -323,30 +326,27 @@ class Chatbot:
                   if arb == "": return random.choice(self.response_directory["zero_movies_creative"])
                   else: return arb
             elif len(extracted_movies) > 1:
-                print(extracted_movies)
                 return random.choice(self.response_directory["multiple_movies_starter"])
 
             # STEP 4: Edge cases passed, get the movie from the database
             movie = extracted_movies[0]
             movie_indices = self.find_movies_by_title(movie)
-<<<<<<< bd14d63303a837db5bbeab687022ba42e7a382c2
 
             if len(movie_indices) == 0: 
                 arb = self.handle_arb_inputs(line) 
                 if arb == "": return self.movie_not_found(movie, line)
                 else: return arb
-=======
-            print(movie_indices)
-            if len(movie_indices) == 0: return self.movie_not_found(movie, line)
->>>>>>> fix alt/foreign titles
             elif len(movie_indices) > 1: return "I noticed there are multiple movies called \"" + movie + "\". Can you please add the year of the one you're talking about?"
 
             # STEP 5: If movie found in database, record its sentiment
             else: sentiment = self.extract_sentiment(input_for_sentiment)
             
             if sentiment == 0: return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
-            else: response = self.handle_sentiment(movie, input_for_sentiment, sentiment)
-
+            else: 
+                response = self.handle_sentiment(movie, input_for_sentiment, sentiment)
+                if self.user_ratings[movie_indices[0]] == 0:
+                    self.num_ratings = self.num_ratings + 1
+                    self.user_ratings[movie_indices[0]] = sentiment
            # STEP 6: If 5 movies registered, move on to making the recommendation
             if self.num_ratings >= 5:
                   return self.handle_recommendation(line)
@@ -470,7 +470,6 @@ class Chatbot:
         movie = title_parts.group('movie').strip() if title_parts.group('movie') else ""
         year = title_parts.group('year').strip() if title_parts.group('year') else ""
         patterns = []
-        #print(self.movie_titles)
         if year == "":
             patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " \(\d{4}\)", flags=re.IGNORECASE))
             if article != "":
@@ -511,6 +510,7 @@ class Chatbot:
         year = title_parts.group('year').strip() if title_parts.group('year') else ""
         patterns = []
         patterns_creative = []
+        patterns_disambiguate = []
         if year == "":
             patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " \(\d{4}\)", flags=re.IGNORECASE))
             if article != "":
@@ -540,9 +540,14 @@ class Chatbot:
                         patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) " + re.escape(year), flags=re.IGNORECASE))
                     else:
                         patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) " + re.escape(year), flags=re.IGNORECASE))
-        if year == "": 
-            patterns_creative.append(re.compile("^" + movie + "[^\w]", re.IGNORECASE)) # disambiguation part 1
+            if year == "": 
+                patterns_disambiguate.append(re.compile("^" + movie + "[^\w]", re.IGNORECASE)) # disambiguation part 1
         for r in patterns:
+            result = list(filter(r.match, self.movie_titles))
+            if len(result) > 0:
+                for movie in result:
+                    movie_list.append(self.movie_titles.index(movie))
+        for r in patterns_disambiguate:
             result = list(filter(r.match, self.movie_titles))
             if len(result) > 0:
                 for movie in result:
@@ -554,6 +559,8 @@ class Chatbot:
                     match = re.match("(?P<article>(le |les |la |el |il |las |i |une |der |die |lo |los |das |de |un |en |den |det )?)(?P<movie>[^\(\)]+ \([^\(\)]+\) (?<!\(\d{4}\)))(?P<year>\(\d{4}\))?$", movie, flags=re.IGNORECASE)
                     if self.creative and foreign_alt_parts != None and match == None:
                         continue
+                    movie_list.append(self.movie_titles.index(movie))
+        print(movie_list)
         movie_list = list(set(movie_list))
         movie_list.sort()
         return movie_list
@@ -993,11 +1000,12 @@ class Chatbot:
             ratings.append(sum)
         ratings = np.sort(ratings)[::-1]  
         for i in range(k): 
-          recommendations.append(ratings_map[ratings[i]]) 
+          if ratings_map[ratings[i]] not in recommendations:
+            recommendations.append(ratings_map[ratings[i]]) 
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
-        return list(set(recommendations))
+        return recommendations
 
     #############################################################################
     # 4. Debug info                                                             #
