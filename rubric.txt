@@ -29,7 +29,10 @@ Did not implement any of the above features: NO
 #########################################################################################
 # Team Contributions                                                                    #
 #########################################################################################
-TODO: Please write a short description of what each team member contributed!
+Azhia: recommend(), Identifying movies without quotation marks and correct capitalization (parts 1 and 2), Communicating sentiments and movies extracted to the user given multiple-movie input, Extracting sentiment with multiple-movie input
+Esther: set up github, find_movies_by_title(), Alternate/foreign titles, disambiguation (parts 1 and 2), process()
+Harry: extract_sentiment() (starter and creative), find_movies_closest_to_title() 
+Mallika: binarize, extract_titles(), Responding to arbitrary input, Dialogue for spell-checking, process()
 
 
 #########################################################################################

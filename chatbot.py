@@ -762,7 +762,7 @@ class Chatbot:
         """
         possible_movies = []
         for c in candidates:
-            match = re.search(clarification + "[^\w]", self.titles[c], flags = re.IGNORECASE)
+            match = re.search(re.escape(clarification) + "[^\w]", self.movie_titles[c], flags = re.IGNORECASE)
             if match != None:
                 possible_movies.append(c)
         return possible_movies
