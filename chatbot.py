@@ -54,8 +54,8 @@ class Chatbot:
           ],
 
           "closest_movie": [
-            "D'oh. I couldn't find '{old}' in my records, did you mean '{new}'?",
-           "'{old}' doesn't exist in my database, did you mean '{new}'?"
+            "D'oh. I couldn't find '{old}' in my records, did you mean '{new}'? (Yes or no)",
+           "'{old}' doesn't exist in my database, did you mean '{new}'? (Yes or no)"
            ],
 
            "no_match": [
