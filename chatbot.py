@@ -112,7 +112,8 @@ class Chatbot:
 
            "couldnt_understand_yes_no": [
              "I don't think I understand, could you try typing 'yes' or 'no' again?",
-             "Sorry, was that a 'yes' or 'no'?"
+             "Sorry, was that a 'yes' or 'no'?",
+             "Errrr... what? 'yes' or 'no'?"
            ],
 
             "tell_me_more": [
@@ -138,8 +139,6 @@ class Chatbot:
              "Since I'm a 'Starter Mode' bot, I can only understand if you put the name of the movie within double quotes",
              "Please remember to put the name of the movie within double quotes!",
              "Oh and please put the exact name of the movie in double quotes."
-             "Sorry, was that a 'yes' or 'no'?",
-             "Errrr... what? 'yes' or 'no'?"
            ]
 
       
