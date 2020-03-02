@@ -40,27 +40,33 @@ class Chatbot:
         self.response_directory = {
           "zero_movies_starter": [
             "Oops! I can't tell if you forgot to put your movie title in quotation marks or didn't mention a movie at all. Try again please.",
-            "Sorry, could you try again with the movie title in quotations?"
+            "Sorry, could you try again with the movie title in quotations?",
+            "I'm scratching my head over here because I can't figure out what movie you're referring to. Try again, man!"
           ], 
 
           "zero_movies_creative": [
             "Oops! I couldn't find any movie in that statement. Try again please.",
-            "Sorry, I wasn't able to understand the movie name from that sentence, could you try again?"
+            "Sorry, I wasn't able to understand the movie name from that sentence, could you try again?",
+            "I couldn't find the movie you're talking about. It's not you, it's me! Try again though.",
+            "I'm trying as hard as I can but still can't find that movie! Can you try again?"
           ], 
 
           "multiple_movies_starter": [
             "You've mentioned more than one movie. Can you please tell me about them one at a time?",
-          "I'm sorry, I can't really handle too much external stimulus. :p Can you please try one movie at a time?"
+            "I'm sorry, I can't really handle too much external stimulus. :p Can you please try one movie at a time?",
+            "There might be more than one movie with that name. Can you be more specific?",
           ],
 
           "closest_movie": [
             "D'oh. I couldn't find '{old}' in my records, did you mean '{new}'? (Yes or no)",
-           "'{old}' doesn't exist in my database, did you mean '{new}'? (Yes or no)"
+           "'{old}' doesn't exist in my database, did you mean '{new}'? (Yes or no)",
+           "Hmm, I can't seem to find '{old}'. Did you mean '{new}'? (Yes or no)",
            ],
 
            "no_match": [
               "Unfortunately I wasn't able to find '{movie}' :(. Can you tell me your thoughts about another movie?",
-              "Sorry man, I couldn't find '{movie}' in my database :(. Do you have another in mind?"
+              "Sorry man, I couldn't find '{movie}' in my database :(. Do you have another in mind?",
+              "I can't find '{movie}', but maybe it wasn't meant to be. Let's try another movie."
            ],
 
            "spellcheck_fail": [
@@ -70,25 +76,38 @@ class Chatbot:
 
            "liked_movie": [
              "You liked '{movie}', huh? Me too! ",
-             "I liked '{movie}' too! "
+             "I liked '{movie}' too! ",
+             "I know! '{movie}' was good! ",
+             "I enjoyed '{movie}' too! ",
+             "Wow, I thought I was the only one that enjoyed '{movie}'! ",
+             "Cool, so you liked '{movie}'. ",
+             "I can't believe you liked '{movie}' too! "
            ],
 
             "really_liked_movie": [
              "Boy, you really liked '{movie}', huh? Me too! ",
              "I enjoyed '{movie}' a lot too! ",
              "I know! '{movie}' was great! ",
+             "I know! I've watched '{movie}' at least 10 times! ",
+             "Woot! '{movie}' is my favorite! ",
              "'{movie}' was absolutely bomb! ",
            ],
 
            "disliked_movie": [
              "Oh no, sounds like you didn't enjoy '{movie}' much, huh? ",
-             "Guess you didn't like '{movie}' much. "
+             "Guess you didn't like '{movie}' much. ",
+            "Tell me about it :(. '{movie}' was a bummer. ",
+            "I agree, I didn't like '{movie}' either. ",
+             "Okay, you didn't like '{movie}'. ",
+             "Seems like you didn'y enjoy '{movie}'. "
            ],
 
            "really_disliked_movie": [
              "Oh no, sounds like you didn't enjoy '{movie}' at all, huh? ",
              "Damn, you didn't like '{movie}' at all. ",
-             "Really? You didn't like {movie}? Hmm. I didn't like it much either.  "
+             "Really? You didn't like {movie}? Hmm. I didn't like it much either.  ",
+             "Tell me about it :(. '{movie}' was such a big bummer. ",
+             "Guess you didn't like '{movie}' at all. ",
            ],
 
            "couldnt_understand_yes_no": [
@@ -98,9 +117,32 @@ class Chatbot:
 
             "tell_me_more": [
              "Tell me about another movie.",
-             "Anyway, tell me about another movie.",
+             "Okay, tell me about another one .. ",
              "What about more movies? Can you tell me about another one?"
+           ],
+
+           "arbitrary_inputs": [
+             "I'm really not sure how to answer that. Can you try telling me about a movie? Try typing - I liked \"Limitless\"",
+             "I don't know how to answer you. Try telling me about a movie with something like - I liked \"Limitless\"",
+             "Uhh ... I am not sure what you mean, I'm just a poor Movie Bot. Try telling me about a movie with something like - I liked \"Limitless\"",
+             "You got me! I don't really know. Try telling me about a movie with something like - I liked \"Limitless\""
+           ],
+
+           "greeting_creative": [
+             "Hello! Tell me about a movie you've seen and whether you liked it or not. ",
+              "Hey there. So, which movies did you like or dislike yesterday? ",
+              "Mornin'! So, tell me about your recent movie watches and if you liked them or not. Oh, one by one please! "
+           ],
+
+           "greeting_starter": [
+             "Since I'm a 'Starter Mode' bot, I can only understand if you put the name of the movie within double quotes",
+             "Please remember to put the name of the movie within double quotes!",
+             "Oh and please put the exact name of the movie in double quotes."
+             "Sorry, was that a 'yes' or 'no'?",
+             "Errrr... what? 'yes' or 'no'?"
            ]
+
+      
 
         }
         #############################################################################
@@ -124,8 +166,8 @@ class Chatbot:
         # TODO: Write a short greeting message                                      #
         #############################################################################
 
-        greeting_message = "Hey there!\n So, tell me what you think about a movie you've seen. Please make sure to put the name of the movie within double quotes."
-
+        greeting_message = random.choice(self.response_directory["greeting_creative"])
+        if not self.creative: greeting_message = greeting_message + random.choice(self.response_directory["greeting_starter"])
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -152,8 +194,9 @@ class Chatbot:
 
             if self.user_wants_recommend == 0: # beginning of recommendations
                 self.user_wants_recommend = 1
+                print("Give me one moment while I figure out some movies to recommend...")
                 self.recommended_movies = self.recommend(self.user_ratings, self.ratings)
-             
+                print(self.recommended_movies)
             if len(self.recommended_movies) == 0:
                 self.time_to_recommend = 0
                 return "Unfortunately I can't find any movies to recommend just yet. But let's keep going. Tell me about another movie."
@@ -161,13 +204,18 @@ class Chatbot:
                 response = "I recommend \"" + self.movie_titles[self.recommended_movies[self.next_movie_to_recommend]] + "\"."
                 self.next_movie_to_recommend = self.next_movie_to_recommend + 1
                 
-                if self.next_movie_to_recommend == len(self.recommended_movies):
+                if self.next_movie_to_recommend >= len(self.recommended_movies):
                     response = response + " Well that's all I have for now! Type :quit to exit."
                     self.time_to_recommend = 0
                     self.user_wants_recommend = 0
                 else:
                     response = response + " Would you like another recommendation?"
                 return response
+            elif self.next_movie_to_recommend >= len(self.recommended_movies):
+                    response = response + " Well that's all I have for now! Type :quit to exit."
+                    self.time_to_recommend = 0
+                    self.user_wants_recommend = 0
+
 
         else:
             self.time_to_recommend = 1
@@ -190,16 +238,12 @@ class Chatbot:
 
     def handle_sentiment(self, movie, line, sentiment):
           if sentiment == 1:
-              self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["liked_movie"]).format(movie=movie)
           elif sentiment == 2:
-              self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["really_liked_movie"]).format(movie=movie)
           elif sentiment == -1:
-              self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["disliked_movie"]).format(movie=movie)
           elif sentiment == -2:
-              self.num_ratings = self.num_ratings + 1
               return random.choice(self.response_directory["really_disliked_movie"]).format(movie=movie)
 
     def process_starter(self, line):
@@ -226,24 +270,34 @@ class Chatbot:
             if sentiment == 0:
                 return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
             else:
-                if sentiment > 0:
+                response = self.handle_sentiment(movie, line, sentiment)
+                if self.user_ratings[movie_indices[0]] == 0:
                     self.num_ratings = self.num_ratings + 1
-                    response = "So you liked " + movie + ", huh? " # the extra space here is on purpose because we will add to the response
-                elif sentiment < 0:
-                    self.num_ratings = self.num_ratings + 1
-                    response =  "Sounds like you didn't enjoy " + movie + ". "
-
+                    self.user_ratings[movie_indices[0]] = sentiment
 
                 if self.num_ratings >= 5:
                     return self.handle_recommendation(line)
                 else:
                     return response + random.choice(self.response_directory["tell_me_more"])
 
+    def handle_arb_inputs(self, line):
+        arbitrary_input_rules_1 = [not self.time_to_recommend == 1, not self.just_prompted_spellcheck == 1]
+        arbitrary_input_rules_2 = [
+        line.lower().startswith("what"), 
+        line.lower().startswith("can"),
+        line.lower().startswith("could"),
+        line.lower().startswith("when"),
+        line.lower().startswith("how")
+        ]
+        if any(arbitrary_input_rules_2) and all(arbitrary_input_rules_1): 
+          return random.choice(self.response_directory["arbitrary_inputs"])
+        else:
+          return ""
+
     def process_creative(self, line):
             
             extracted_movies = self.extract_titles(line)
             input_for_sentiment = line
-
             # STEP 1: Check if its time to recommend
             if self.time_to_recommend == 1:
                 return self.handle_recommendation(line)
@@ -268,24 +322,31 @@ class Chatbot:
           
             # STEP 3: Handle no movies found, or too many movies found
             if len(extracted_movies) == 0:
-                return random.choice(self.response_directory["zero_movies_creative"])
+                  arb = self.handle_arb_inputs(line) 
+                  if arb == "": return random.choice(self.response_directory["zero_movies_creative"])
+                  else: return arb
             elif len(extracted_movies) > 1:
                 return random.choice(self.response_directory["multiple_movies_starter"])
 
             # STEP 4: Edge cases passed, get the movie from the database
             movie = extracted_movies[0]
             movie_indices = self.find_movies_by_title(movie)
-            print("Found", movie, movie_indices,"-----")
 
-            if len(movie_indices) == 0: return self.movie_not_found(movie, line)
+            if len(movie_indices) == 0: 
+                arb = self.handle_arb_inputs(line) 
+                if arb == "": return self.movie_not_found(movie, line)
+                else: return arb
             elif len(movie_indices) > 1: return "I noticed there are multiple movies called \"" + movie + "\". Can you please add the year of the one you're talking about?"
 
             # STEP 5: If movie found in database, record its sentiment
             else: sentiment = self.extract_sentiment(input_for_sentiment)
             
             if sentiment == 0: return "I can't tell if you liked " + movie + ". Can you tell me more of your thoughts on it?"
-            else: response = self.handle_sentiment(movie, input_for_sentiment, sentiment)
-
+            else: 
+                response = self.handle_sentiment(movie, input_for_sentiment, sentiment)
+                if self.user_ratings[movie_indices[0]] == 0:
+                    self.num_ratings = self.num_ratings + 1
+                    self.user_ratings[movie_indices[0]] = sentiment
            # STEP 6: If 5 movies registered, move on to making the recommendation
             if self.num_ratings >= 5:
                   return self.handle_recommendation(line)
@@ -384,7 +445,7 @@ class Chatbot:
           words = preprocessed_input.lower()
           words = words.split()
           # get combinations of words
-          for i in range(len(words)):
+          for i in range(len(words)+1):
             titles = list(itertools.combinations(words, i))
             for j in range(len(titles)):
               title = ""
@@ -396,7 +457,7 @@ class Chatbot:
                 while title[len(title) - 1] in string.punctuation:
                   title = title[:len(title) - 1]
               result = self.find_helper(title)
-              if result:
+              if result and result not in movies:
                 movies.append(title)
         return movies
     
@@ -409,7 +470,6 @@ class Chatbot:
         movie = title_parts.group('movie').strip() if title_parts.group('movie') else ""
         year = title_parts.group('year').strip() if title_parts.group('year') else ""
         patterns = []
-        #print(self.movie_titles)
         if year == "":
             patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " \(\d{4}\)", flags=re.IGNORECASE))
             if article != "":
@@ -423,7 +483,7 @@ class Chatbot:
             if len(result) > 0:
                 for movie in result:
                     movie_list.append(self.movie_titles.index(movie))
-        return movie_list
+        return list(set(movie_list))
     
     def find_movies_by_title(self, title):
         """ Given a movie title, return a list of indices of matching movies.
@@ -449,6 +509,8 @@ class Chatbot:
         movie = title_parts.group('movie').strip() if title_parts.group('movie') else ""
         year = title_parts.group('year').strip() if title_parts.group('year') else ""
         patterns = []
+        patterns_creative = []
+        patterns_disambiguate = []
         if year == "":
             patterns.append(re.compile((article + " " if article != "" else "") + re.escape(movie) + " \(\d{4}\)", flags=re.IGNORECASE))
             if article != "":
@@ -462,23 +524,43 @@ class Chatbot:
             article = foreign_alt_parts.group('article').strip() if foreign_alt_parts.group('article') != None else ""
             movie = foreign_alt_parts.group('movie').strip() if foreign_alt_parts.group('movie') else ""
             year = title_parts.group('year').strip() if title_parts.group('year') else ""
+            #match = re.search("\([^\(\)]+\)",movie)
             if foreign_alt_parts != None:
                 if year == "":
                     if article != "":
-                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + article + " " + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
                     else:
-                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) (?:\(\d{4}\))?", flags=re.IGNORECASE))
                 else:
                     if article != "":
-                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) " + re.escape(year), flags=re.IGNORECASE))
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + article + " " + re.escape(movie) + "\) " + re.escape(year), flags=re.IGNORECASE))
+
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + ", " + article + "\) " + re.escape(year), flags=re.IGNORECASE))
                     else:
-                        patterns.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) " + re.escape(year), flags=re.IGNORECASE))
-            patterns.append(re.compile("^" + movie + "[^\w]", re.IGNORECASE)) # disambiguation part 1
+                        patterns_creative.append(re.compile("[^\(]+ \((?:a.k.a. )?" + re.escape(movie) + "\) " + re.escape(year), flags=re.IGNORECASE))
+            if year == "": 
+                patterns_disambiguate.append(re.compile("^" + movie + "[^\w]", re.IGNORECASE)) # disambiguation part 1
         for r in patterns:
             result = list(filter(r.match, self.movie_titles))
             if len(result) > 0:
                 for movie in result:
                     movie_list.append(self.movie_titles.index(movie))
+        for r in patterns_disambiguate:
+            result = list(filter(r.match, self.movie_titles))
+            if len(result) > 0:
+                for movie in result:
+                    movie_list.append(self.movie_titles.index(movie))
+        for r in patterns_creative:
+            result = list(filter(r.match, self.movie_titles))
+            if len(result) > 0:
+                for movie in result:
+                    match = re.match("(?P<article>(le |les |la |el |il |las |i |une |der |die |lo |los |das |de |un |en |den |det )?)(?P<movie>[^\(\)]+ \([^\(\)]+\) (?<!\(\d{4}\)))(?P<year>\(\d{4}\))?$", movie, flags=re.IGNORECASE)
+                    if self.creative and foreign_alt_parts != None and match == None:
+                        continue
+                    movie_list.append(self.movie_titles.index(movie))
+        print(movie_list)
         movie_list = list(set(movie_list))
         movie_list.sort()
         return movie_list
@@ -921,7 +1003,8 @@ class Chatbot:
             ratings.append(sum)
         ratings = np.sort(ratings)[::-1]  
         for i in range(k): 
-          recommendations.append(ratings_map[ratings[i]]) 
+          if ratings_map[ratings[i]] not in recommendations:
+            recommendations.append(ratings_map[ratings[i]]) 
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -948,7 +1031,7 @@ class Chatbot:
         can do and how the user can interact with it.
         """
         return """
-        I'm MovieBot 1.0. I want to see if I can recommend movies that you'd like. You'll start by telling me about movies you've seen, making sure to put the movie names inside double quotes. You can type :quit at any time to exit.
+        I'm AEHM Movie Bot. I want to see if I can recommend movies that you'd like. You'll start by telling me about movies you've seen, making sure to put the movie names inside double quotes. You can type :quit at any time to exit.
         """
 
 
