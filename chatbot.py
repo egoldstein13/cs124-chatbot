@@ -517,7 +517,7 @@ class Chatbot:
                 sentiments[stemmed_key] = -2
 
         # Fine-grained sentiment extraction
-        strong_coeff = 2
+        strong_coeff = 1
 
         # Detect emotion using punctuation
         if preprocessed_input.count('!') + preprocessed_input.count('?') >= 2:
@@ -578,6 +578,9 @@ class Chatbot:
             if abs(sentiment) == 2:
                 sentiment //= 2
                 strong_coeff = 2
+
+        if sentiment == -1:
+          strong_coeff = 2
         
         return sentiment * strong_coeff
               
