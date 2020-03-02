@@ -131,8 +131,8 @@ class Chatbot:
 
            "greeting_creative": [
              "Hello! Tell me about a movie you've seen and whether you liked it or not. ",
-              "Hey there. So, which movies did you like or dislike yesterday? ",
-              "Mornin'! So, tell me about your recent movie watches and if you liked them or not. Oh, one by one please! "
+              "Hey there. So, what movies did you see recently that you liked or disliked? ",
+              "Howdy! So, tell me about your recent movie watches and if you liked them or not. Oh, and one by one please! "
            ],
 
            "greeting_starter": [
@@ -272,6 +272,8 @@ class Chatbot:
                 if self.user_ratings[movie_indices[0]] == 0:
                     self.num_ratings = self.num_ratings + 1
                     self.user_ratings[movie_indices[0]] = sentiment
+                else:
+                    return "You've already talked about " + movie + ", so tell me about another one!"
 
                 if self.num_ratings >= 5:
                     return self.handle_recommendation(line)
@@ -345,6 +347,8 @@ class Chatbot:
                 if self.user_ratings[movie_indices[0]] == 0:
                     self.num_ratings = self.num_ratings + 1
                     self.user_ratings[movie_indices[0]] = sentiment
+                else:
+                    return "You've already talked about " + movie + ", so tell me about another one!"
            # STEP 6: If 5 movies registered, move on to making the recommendation
             if self.num_ratings >= 5:
                   return self.handle_recommendation(line)
