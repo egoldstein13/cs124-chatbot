@@ -882,11 +882,39 @@ class Chatbot:
         :param candidates: a list of movie indices
         :returns: a list of indices corresponding to the movies identified by the clarification
         """
+        nums = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"]
         possible_movies = []
-        for c in candidates:
-            match = re.search(re.escape(clarification) + "[^\w]", self.movie_titles[c], flags = re.IGNORECASE)
-            if match != None:
-                possible_movies.append(c)
+        if clarification == "most recent":
+            most_recent_year = float("-inf")
+            most_recent_movie = None
+            for c in candidates:
+                match = re.search("\((?P<year>\d{4})\)",self.movie_titles[c])
+                if match != None and int(match.group("year")) > most_recent_year:
+                    most_recent_year = int(match.group("year"))
+                    most_recent_movie = c
+            possible_movies.append(most_recent_movie)
+        else:
+            for i in range(0,len(nums)):
+                if nums[i] in clarification:
+                    possible_movies.append(candidates[i])
+                    return possible_movies            
+            for c in candidates:
+                match = re.search("[^\w]" + re.escape(clarification) + "[^\w]", self.movie_titles[c], flags = re.IGNORECASE)
+                if match != None:
+                    possible_movies.append(c)
+            if len(possible_movies) == 0 and clarification.isdigit():
+                possible_movies.append(candidates[int(clarification)-1])
+                return possible_movies
+        if len(possible_movies) == 0:
+            closest_movie = None
+            smallest_dist = float("inf")
+            for c in candidates:
+                dist = self.edit_distance(clarification, self.movie_titles[c])
+                if dist < smallest_dist:
+                    closest_movie = c
+                    smallest_dist = dist
+            if closest_movie != None:
+                possible_movies.append(closest_movie)
         return possible_movies
 
     #############################################################################
