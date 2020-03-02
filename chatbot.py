@@ -207,7 +207,7 @@ class Chatbot:
                     self.time_to_recommend = 0
                     self.user_wants_recommend = 0
                 else:
-                    response = response + " Would you like another recommendation?"
+                    response = response + " Would you like another recommendation? (yes or :quit to exit)"
                 return response
             elif self.next_movie_to_recommend >= len(self.recommended_movies):
                     response = response + " Well that's all I have for now! Type :quit to exit."
