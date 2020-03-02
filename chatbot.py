@@ -195,7 +195,6 @@ class Chatbot:
                 self.user_wants_recommend = 1
                 print("Give me one moment while I figure out some movies to recommend...")
                 self.recommended_movies = self.recommend(self.user_ratings, self.ratings)
-                print(self.recommended_movies)
             if len(self.recommended_movies) == 0:
                 self.time_to_recommend = 0
                 return "Unfortunately I can't find any movies to recommend just yet. But let's keep going. Tell me about another movie."
@@ -559,7 +558,7 @@ class Chatbot:
                     if self.creative and foreign_alt_parts != None and match == None:
                         continue
                     movie_list.append(self.movie_titles.index(movie))
-        print(movie_list)
+
         movie_list = list(set(movie_list))
         movie_list.sort()
         return movie_list
