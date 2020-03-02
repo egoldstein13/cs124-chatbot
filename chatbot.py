@@ -599,7 +599,7 @@ class Chatbot:
                 sentiments[stemmed_key] = -2
 
         # Fine-grained sentiment extraction
-        strong_coeff = 1
+        strong_coeff = 2
 
         # Detect emotion using punctuation
         if preprocessed_input.count('!') + preprocessed_input.count('?') >= 2:
@@ -633,7 +633,7 @@ class Chatbot:
                 strong_coeff = 2
 
         neg_lexicon = {'not', 'never', 'no', 'neither'}
-        strong_lexicon = {'realli', 'veri', 'much', 'most', 'absolut', 'ever', 'forev'}
+        strong_lexicon = {'realli', 'veri', 'much', 'most', 'absolut', 'ever', 'forev', 'so', 'extrem'}
         negation = 1
 
         sentiment = 0
@@ -660,9 +660,6 @@ class Chatbot:
             if abs(sentiment) == 2:
                 sentiment //= 2
                 strong_coeff = 2
-
-        if sentiment == -1:
-          strong_coeff = 2
         
         return sentiment * strong_coeff
               

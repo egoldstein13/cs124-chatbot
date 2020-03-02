@@ -1981,7 +1981,7 @@ clutter,neg
 stubborn,neg
 shark,neg
 rumple,neg
-atrocious,neg
+atrocious,negs
 propriety,pos
 virtuous,pos
 abandonment,neg
@@ -3623,3 +3623,7 @@ understand,pos
 defend,pos
 unspeakable,negs
 solid,pos
+shit,negs
+crap,negs
+trash,negs
+shitti,negs
