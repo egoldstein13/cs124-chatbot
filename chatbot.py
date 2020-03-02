@@ -27,6 +27,7 @@ class Chatbot:
         self.recommended_movies = []
         self.next_movie_to_recommend = 0
         self.just_prompted_spellcheck = 0
+        self.quit_time = 0
         self.spell_corrected_movie = ""
         self.line_before_spellcheck = ""
         # This matrix has the following shape: num_movies x num_users
@@ -139,9 +140,24 @@ class Chatbot:
              "Since I'm a 'Starter Mode' bot, I can only understand if you put the name of the movie within double quotes",
              "Please remember to put the name of the movie within double quotes!",
              "Oh and please put the exact name of the movie in double quotes."
-           ]
+           ],
 
-      
+           "quit_time": [
+             "I'm exhausted after all that recommending! Going to sleep now. Please type :quit to let me rest a little bit :(",
+             "I'm exhausted now :( Please type :quit to let me rest a little bit.",
+             "Movie Bots need rest too! Please type :quit to let me rest a little bit",
+             "zzz ... huh? what? Sorry, I must have dozed off. Recommending all those movies tired me. Please type :quit to let me rest.",
+             "Phew, I'm all done for the day, need to recharge a little bit. Please type :quit to let me sleep for a bit. I promise to come back all excited again!"
+           ],
+
+            "recommend_time": [
+                "You should check out '{movie}'! ",
+                "Based on everything you've told me, I think you'd love '{movie}'! ",
+                "You seem like the type who'd love '{movie}'. ",
+                "All your choices point to one movie - '{movie}'. ",
+                "Trust me, you'd absolutely love '{movie}'! ",
+                "For you I recommend '{movie}'!"
+           ]
 
         }
         #############################################################################
@@ -199,16 +215,19 @@ class Chatbot:
                 self.time_to_recommend = 0
                 return "Unfortunately I can't find any movies to recommend just yet. But let's keep going. Tell me about another movie."
             elif self.next_movie_to_recommend < len(self.recommended_movies):
-                response = "I recommend \"" + self.movie_titles[self.recommended_movies[self.next_movie_to_recommend]] + "\"."
+                reco_movie = self.movie_titles[self.recommended_movies[self.next_movie_to_recommend]]
+                response = random.choice(self.response_directory["recommend_time"]).format(movie=reco_movie)
                 self.next_movie_to_recommend = self.next_movie_to_recommend + 1
                 
                 if self.next_movie_to_recommend >= len(self.recommended_movies):
                     response = response + " Well that's all I have for now! Type :quit to exit."
                     self.time_to_recommend = 0
                     self.user_wants_recommend = 0
+                    self.quit_time = 1
                 else:
                     response = response + " Would you like another recommendation? (yes or :quit to exit)"
                 return response
+                
             elif self.next_movie_to_recommend >= len(self.recommended_movies):
                     response = response + " Well that's all I have for now! Type :quit to exit."
                     self.time_to_recommend = 0
@@ -380,6 +399,8 @@ class Chatbot:
         # it is highly recommended.                                                 #
         #############################################################################
         if line.lower() == "who are you?": return "Well..."
+        if self.quit_time == 1: 
+          return random.choice(self.response_directory["quit_time"])
 
         try:
           if self.creative: return self.process_creative(line) 
